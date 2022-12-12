@@ -10,24 +10,51 @@
 
 namespace math3d{
 
+	struct TransformationMatrix{
+		long double matrix[4][4] = {{1, 0, 0, 0},
+									{0, 1, 0, 0},
+									{0, 0, 1, 0},
+									{0, 0, 0, 1}};
+
+		TransformationMatrix operator*(const TransformationMatrix &other);
+	};
+
 	struct Point3D{
 		union{
 			struct{
 				long double x, y, z;
 			};
-			long double mat[4]{0, 0, 0, 1};
+			long double mat[4];
 		};
 
-		Point3D() : x(0), y(0), z(0) {};
-		Point3D(long double x, long double y, long double z) : x(x), y(y), z(z) {};
-		Point3D transform(long double* matrix);
+		Point3D() : mat{0, 0, 0, 1} {};
+		Point3D(long double x, long double y, long double z) : mat{x, y, z, 1} {};
+		Point3D transform(const TransformationMatrix &matrix);
+
+		Point3D operator+(const Point3D &other);
+		Point3D operator-(const Point3D &other);
+		Point3D operator*(const Point3D &other);
+		Point3D operator/(const Point3D &other);
+
+		Point3D operator+=(const Point3D &other);
+		Point3D operator-=(const Point3D &other);
+		Point3D operator*=(const Point3D &other);
+		Point3D operator/=(const Point3D &other);
+
+		Point3D operator+(const double &other);
+		Point3D operator-(const double &other);
+		Point3D operator*(const double &other);
+		Point3D operator/(const double &other);
+
+		Point3D operator+=(const double &other);
+		Point3D operator-=(const double &other);
+		Point3D operator*=(const double &other);
+		Point3D operator/=(const double &other);
 	};
 
-	struct Point2D{
-		long double x, y;
-
-		Point2D() : x(0), y(0) {};
-		Point2D(long double x, long double y) : x(x), y(y) {};
+	struct Vector3D: Point3D{
+		Vector3D() : Point3D() { mat[4] = 0; };
+		Vector3D(long double x, long double y, long double z) : Point3D(x, y, z) { mat[4] = 0; };
 	};
 
 	struct Plane{
@@ -35,15 +62,17 @@ namespace math3d{
 			double a, b, c, d;
 		};
 		double arr[4];
+
+		Plane() : a(0), b(0), c(0), d(0) {};
+		Plane(double a, double b, double c, double d) : a(a), b(b), c(c), d(d) {};
 	};
 
-	double distanceToPlane(Point3D point, double a, double b, double c, double d);
+	double distanceToUnitPlane(Point3D point, Plane plane);
+	Point3D intersectionToPlane(Plane &plane, Point3D &neg, Point3D &pos);
 
-	long double* getUnitMatrix();
-	long double* multiply(long double matrix1[16], long double matrix2[16]);
-	long double* translate(long double transform[16], long double x, long double y, long double z);
-	long double* rotate(long double transform[16], long double xAngle, long double yAngle, long double zAngle);
-	long double* scale(long double transform[16], long double xFactor, long double yFactor, long double zFactor);
+	TransformationMatrix translate(TransformationMatrix transform, long double x, long double y, long double z);
+	TransformationMatrix rotate(TransformationMatrix transform, long double xAngle, long double yAngle, long double zAngle);
+	TransformationMatrix scale(TransformationMatrix transform, long double xFactor, long double yFactor, long double zFactor);
 
 }
 

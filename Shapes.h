@@ -11,7 +11,7 @@
 #include "Projection.h"
 
 namespace shapes{
-	proj::Model getCube();
+	proj::Model& getCube();
 }
 
 #endif /* SHAPES_H_ */
