@@ -8,7 +8,6 @@
 #include <cmath>
 
 #include "Rasterizer.h"
-#include "BMP.h"
 #include "Math3D.h"
 #include "Projection.h"
 #include "Color.h"
@@ -18,8 +17,12 @@
 using namespace std;
 
 int main(){
-	Scene scene(1000, 1000);
+	//srand(time(0));
+	srand(24);
 
+	Scene scene(250, 250);
+
+	proj::Model cube = shapes::getCube();
 	proj::Model model(3, 1);
 	model.vertices = new math3d::Point3D[model.numVertices];
 	model.vertices[0] = math3d::Point3D(0, 0, 0);
@@ -29,42 +32,48 @@ int main(){
 	model.triangles = new int*[model.numTriangles];
 	model.triangles[0] = new int[]{0, 1, 2};
 
-	proj::Texture texture(shapes::getCube(), 256, 256);
+	proj::Texture texture(cube, 256, 256);
 	for(int i = 0; i < 256; i++){
 		for(int j = 0; j < 256; j++){
-			texture.image[i+texture.width*j] = Color(i, 0, j);
+			texture.image[i+256*j] = Color(i, 0, j);
 		}
 	}
 
+	for(int i = 0; i < 12; i+=2){
+		texture.xMap[i] = new double[]{0, 1, 0};
+		texture.yMap[i] = new double[]{0, 0, 1};
 
+		texture.xMap[i] = new double[]{1, 1, 0};
+		texture.yMap[i] = new double[]{1, 0, 1};
+	}
 
 	Color color(0);
 
-	proj::Instance inst1(shapes::getCube(), color);
+	proj::Instance inst1(cube, color);
 	inst1.transform = math3d::translate(inst1.transform, -0.5, -0.5, -0.5);
-	inst1.transform = math3d::scale(inst1.transform, 100, 100, 100);
-	inst1.transform = math3d::rotate(inst1.transform, M_PI/4, M_PI/4, 0);
-	inst1.transform = math3d::translate(inst1.transform, 0, 0, 250);
+	inst1.transform = math3d::scale(inst1.transform, 25, 25, 25);
+	inst1.transform = math3d::rotateX(inst1.transform, M_PI/4);
+	inst1.transform = math3d::translate(inst1.transform, 0, 0, 50);
 
 	proj::Instance inst2(model, color);
 	inst2.transform = math3d::scale(inst2.transform, 400, 800, 1);
 	inst2.transform = math3d::translate(inst2.transform, 0, -400, 1000);
 
-	proj::Instance inst3(shapes::getCube(), color);
+	proj::Instance inst3(cube, color);
 	inst3.transform = math3d::translate(inst3.transform, -0.5, -0.5, -0.5);
 	inst3.transform = math3d::scale(inst3.transform, 250, 250, 250);
-	inst3.transform = math3d::rotate(inst3.transform, 0, M_PI/4, M_PI/3);
-	inst3.transform = math3d::translate(inst3.transform, 150, -150, 500);
+	inst3.transform = math3d::rotateY(inst3.transform, M_PI/4);
+	inst3.transform = math3d::rotateX(inst3.transform, M_PI/6);
+	inst3.transform = math3d::translate(inst3.transform, 0, 0, 250);
 
 	RenderSettings settings;
 	//settings.wireframe = true;
 	scene.setRenderSettings(settings);
 
-	cout << "here1" << endl;
-	scene.render(inst1);
+	//scene.render(inst1);
 	//scene.render(inst2);
-	//scene.render(inst3);
+	scene.render(inst3);
 
-	cout << "here2" << endl;
+	//cout << "render" << endl;
 	bmp::writeFile("line.bmp", scene.getRaster(), scene.getWidth(), scene.getHeight());
 }

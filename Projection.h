@@ -10,46 +10,47 @@
 
 #include <cstdint>
 #include <cmath>
-#include <iostream>
 
-#include "Math3D.h"
-#include "Color.h"
+#include "priori/Math3D.h"
+#include "priori/Graphical.h"
 
 namespace proj{
 
 	struct Model{
 		const int numVertices;
 		const int numTriangles;
-		math3d::Point3D* vertices;
+		priori::Point3D* vertices;
 		int** triangles;
-		math3d::Vector3D* normals;
+		priori::Vector3D* normals;
 
-		Model(int v, int t) : numVertices(v), numTriangles(t), vertices(new math3d::Point3D[v]), triangles(new int*[t]), normals(new math3d::Vector3D[t]) {};
-	};
-
-	class Instance{
-		Model* model;
-
-	public:
-		Color* color;
-		math3d::TransformationMatrix transform;
-
-		Instance(Model &m, Color c) : model(&m), color(&c) {};
-		Instance(Model* m, Color c) : model(m), color(&c) {};
-		math3d::Point3D* getVertices() const;
-		int** getTriangles() const;
-		int getNumVertices() const;
-		int getNumTriangles() const;
+		Model(int v, int t) : numVertices(v), numTriangles(t), vertices(new priori::Point3D[v]), triangles(new int*[t]), normals(new priori::Vector3D[t]) {};
 	};
 
 	struct Texture{
+		Model* const model;
 		const int width, height;
-		Color* image;
-		Model* model;
-		math3d::Point3D* indexes;
+		priori::Color* image;
+		double** xMap;
+		double** yMap;
 
-		Texture(Model &m, int w, int h) : width(w), height(h), image(new Color[w*h]), model(&m), indexes(new math3d::Point3D[m.numVertices]) {};
-		Color getColor(double x, double y);
+		Texture(Model &m, int w, int h) : model(&m), width(w), height(h), image(new priori::Color[w*h]), xMap(new double*[m.numTriangles]), yMap(new double*[m.numTriangles]) {};
+		priori::Color getColor(double x, double y);
+	};
+
+	class Instance{
+		Model* const model;
+
+	public:
+		priori::Color* color;
+		Texture* texture;
+		priori::TransformationMatrix transform;
+
+		Instance(Model &m, priori::Color c=0xFFFFFF, Texture* t=nullptr) : model(&m), color(&c), texture(t) {};
+		Instance(Model* m, priori::Color c=0xFFFFFF, Texture* t=nullptr) : model(m), color(&c), texture(t) {};
+		priori::Point3D* getVertices() const;
+		int** getTriangles() const;
+		int getNumVertices() const;
+		int getNumTriangles() const;
 	};
 }
 
@@ -58,39 +59,20 @@ struct RenderSettings{
 };
 
 class Scene{
-	uint32_t* viewPort;
+	priori::Image viewPort;
 	double* depthInverse;
-	uint16_t portWidth, portHeight;
 	double focalLength;
-	math3d::TransformationMatrix camera;
-	math3d::Plane* cullingPlanes;
+	priori::TransformationMatrix camera;
+	priori::Plane* cullingPlanes;
 	int numCullingPlanes;
 	RenderSettings* settings;
 
-	math3d::Point3D clipLine(math3d::Point3D culled, math3d::Point3D notCulled);
-	void drawTriangle(Color &color, const math3d::Point3D &p1, const math3d::Point3D &p2, const math3d::Point3D &p3);
-	math3d::Point3D project(const math3d::Point3D &point);
+	priori::Point3D clipLine(priori::Point3D culled, priori::Point3D notCulled);
+	void drawTriangle(priori::Color &color, const priori::Point3D &p1, const priori::Point3D &p2, const priori::Point3D &p3);
+	priori::Point3D project(const priori::Point3D &point);
 
 public:
-	Scene(int width, int height) : viewPort(new uint32_t[width*height]), depthInverse(new double[width*height]), portWidth(width), portHeight(height), focalLength(width/2) {
-		numCullingPlanes = 5;
-		cullingPlanes = new math3d::Plane[numCullingPlanes];
-		cullingPlanes[0] = math3d::Plane(0, 0, 1, -1);
-		cullingPlanes[1] = math3d::Plane(width/2, 0, focalLength, 0);
-		cullingPlanes[2] = math3d::Plane(-width/2, 0, focalLength, 0);
-		cullingPlanes[3] = math3d::Plane(0, -height/2, focalLength, 0);
-		cullingPlanes[4] = math3d::Plane(0, height/2, focalLength, 0);
-
-		for(int i = 0; i < numCullingPlanes; i++){
-			double mag = sqrt(cullingPlanes[i].a*cullingPlanes[i].a +
-							  cullingPlanes[i].b*cullingPlanes[i].b +
-							  cullingPlanes[i].c*cullingPlanes[i].c);
-			cullingPlanes[i].a /= mag;
-			cullingPlanes[i].b /= mag;
-			cullingPlanes[i].c /= mag;
-		}
-		clear();
-	};
+	Scene(int width, int height);
 
 	double getFocalLength(double fovDegrees);
 	void render(const proj::Instance &inst);
@@ -98,8 +80,6 @@ public:
 	void setRenderSettings(RenderSettings &settings) { this->settings = &settings; };
 	void clear();
 	uint32_t* getRaster(){ return viewPort; };
-	uint16_t getWidth(){ return portWidth; };
-	uint16_t getHeight(){ return portHeight; };
 };
 
 #endif /* PROJECTION_H_ */
