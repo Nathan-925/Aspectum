@@ -10,30 +10,26 @@
 
 #include <cstdint>
 #include <cmath>
+#include <forward_list>
 
 #include "priori/Math3D.h"
+#include "priori/Math.h"
 #include "priori/Graphical.h"
 
 namespace proj{
 
-	struct Model{
-		const int numVertices;
-		const int numTriangles;
-		priori::Point3D* vertices;
-		int** triangles;
-		priori::Vector3D* normals;
-
-		Model(int v, int t) : numVertices(v), numTriangles(t), vertices(new priori::Point3D[v]), triangles(new int*[t]), normals(new priori::Vector3D[t]) {};
+	struct Vertex{
+		priori::Point3D position;
+		priori::Point texel;
+		priori::Vector3D normal;
 	};
 
-	struct Texture{
-		Model* const model;
-		const int width, height;
-		priori::Color* image;
-		double** xMap;
-		double** yMap;
+	typedef std::forward_list<Vertex[3]> Model;
 
-		Texture(Model &m, int w, int h) : model(&m), width(w), height(h), image(new priori::Color[w*h]), xMap(new double*[m.numTriangles]), yMap(new double*[m.numTriangles]) {};
+	struct Texture{
+		priori::Image image;
+
+		Texture(Model &m, priori::Image image) : image(image) {};
 		priori::Color getColor(double x, double y);
 	};
 
@@ -45,7 +41,6 @@ namespace proj{
 		Texture* texture;
 		priori::TransformationMatrix transform;
 
-		Instance(Model &m, priori::Color c=0xFFFFFF, Texture* t=nullptr) : model(&m), color(&c), texture(t) {};
 		Instance(Model* m, priori::Color c=0xFFFFFF, Texture* t=nullptr) : model(m), color(&c), texture(t) {};
 		priori::Point3D* getVertices() const;
 		int** getTriangles() const;
@@ -73,6 +68,7 @@ class Scene{
 
 public:
 	Scene(int width, int height);
+	~Scene();
 
 	double getFocalLength(double fovDegrees);
 	void render(const proj::Instance &inst);

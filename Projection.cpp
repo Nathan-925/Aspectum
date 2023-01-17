@@ -42,15 +42,6 @@ namespace proj{
 	}
 }
 
-struct Triangle{
-	Point3D points[3];
-	Color color;
-	proj::Texture* texture;
-	struct{
-		double u, v;
-	} texelValues[3];
-};
-
 Scene::Scene(int width, int height) :
 		viewPort(width, height),
 		depthInverse(new double[width*height]),
@@ -63,6 +54,10 @@ Scene::Scene(int width, int height) :
 					  priori::Plane(0, -height/2, focalLength, 0),
 					  priori::Plane(0, height/2, focalLength, 0)},
 		settings() {};
+
+Scene::~Scene(){
+	delete[] depthInverse;
+}
 
 Point3D Scene::project(const Point3D &point){
 	return Point3D(viewPort.width/2+(point.x*focalLength)/point.z,
