@@ -10,12 +10,13 @@
 
 #include <cstdint>
 
-#include "Color.h"
+#include "priori/Graphical.h"
+#include "priori/Math.h"
 
 namespace raster{
-	void drawLine(uint32_t* target, uint16_t targetWidth, uint16_t targetHeight, Color color, int x0, int y0, int x1, int y1);
-	void drawTriangle(uint32_t* target, uint16_t targetWidth, uint16_t targetHeight, Color color, int x0, int y0, int x1, int y1, int x2, int y2);
-	void fillTriangle(uint32_t* target, uint16_t targetWidth, uint16_t targetHeight, Color color, int x0, int y0, int x1, int y1, int x2, int y2);
+	void drawLine(priori::Image target, priori::Color color, priori::Point p1, priori::Point p2);
+	void drawTriangle(priori::Image target, priori::Color color, priori::Point p1, priori::Point p2, priori::Point p3);
+	void fillTriangle(priori::Image target, priori::Color color, priori::Point p1, priori::Point p2, priori::Point p3);
 }
 
 #endif /* RASTERIZER_H_ */

@@ -6,40 +6,19 @@
  */
 #include <cmath>
 #include <forward_list>
+#include <iterator>
 
 #include "Projection.h"
+#include "Rasterizer.h"
 
 #include "priori/Math.h"
 
-#include "Rasterizer.h"
-
+using namespace std;
 using namespace priori;
+using namespace asp;
 
-namespace proj{
-
-	Point3D* Instance::getVertices() const{
-		Point3D* out = new Point3D[model->numVertices];
-		for(int i = 0; i < model->numVertices; i++){
-			out[i] = model->vertices[i].transform(transform);
-		}
-		return out;
-	}
-
-	int** Instance::getTriangles() const{
-		return model->triangles;
-	}
-
-	int Instance::getNumVertices() const{
-		return model->numVertices;
-	}
-
-	int Instance::getNumTriangles() const{
-		return model->numTriangles;
-	}
-
-	Color Texture::getColor(double x, double y){
-		return image[(int)(x*width) + width*((int)(y*height))];
-	}
+Color Texture::getColor(double x, double y){
+	return image.pixels[(int)(x*image.width)][(int)(y*image.height)];
 }
 
 Scene::Scene(int width, int height) :
@@ -47,13 +26,13 @@ Scene::Scene(int width, int height) :
 		depthInverse(new double[width*height]),
 		focalLength(width/2),
 		camera(0, 0, focalLength),
-		numCullingPlanes(5),
-		cullingPlanes{priori::Plane(0, 0, 1, -focalLength),
-					  priori::Plane(width/2, 0, focalLength, 0),
-					  priori::Plane(-width/2, 0, focalLength, 0),
-					  priori::Plane(0, -height/2, focalLength, 0),
-					  priori::Plane(0, height/2, focalLength, 0)},
-		settings() {};
+		settings() {
+	cullingPlanes.push_front(priori::Plane(0, 0, 1, -focalLength));
+	cullingPlanes.push_front(priori::Plane(width/2, 0, focalLength, 0));
+	cullingPlanes.push_front(priori::Plane(-width/2, 0, focalLength, 0));
+	cullingPlanes.push_front(priori::Plane(0, -height/2, focalLength, 0));
+	cullingPlanes.push_front(priori::Plane(0, height/2, focalLength, 0));
+};
 
 Scene::~Scene(){
 	delete[] depthInverse;
@@ -71,11 +50,11 @@ double Scene::getFocalLength(double fovDegrees){
 
 Point3D Scene::clipLine(Point3D culled, Point3D notCulled){
 	Point3D clipped = culled;
-	for(int i = 0; i < numCullingPlanes; i++){
-		if(distanceToUnitPlane(clipped, cullingPlanes[i]) < 0){
-			clipped = intersectionToPlane(cullingPlanes[i], clipped, notCulled);
-		}
-	}
+
+	for(auto it = cullingPlanes.begin(); it != cullingPlanes.end(); it++)
+		if(distanceToUnitPlane(clipped, *it) < 0)
+			clipped = intersectionToPlane(*it, clipped, notCulled);
+
 	return clipped;
 }
 
@@ -84,9 +63,9 @@ void Scene::drawTriangle(Color &color, const Point3D &p1, const Point3D &p2, con
 		Point3D p2d1 = project(p1);
 		Point3D p2d2 = project(p2);
 		Point3D p2d3 = project(p3);
-		raster::drawTriangle(viewPort, portWidth, portHeight, color, p2d1.x, p2d1.y,
-																	 p2d2.x, p2d2.y,
-																	 p2d3.x, p2d3.y);
+		raster::drawTriangle(viewPort, color, Point(p2d1.x, p2d1.y),
+											  Point(p2d2.x, p2d2.y),
+											  Point(p2d3.x, p2d3.y));
 		return;
 	}
 
@@ -133,72 +112,46 @@ void Scene::drawTriangle(Color &color, const Point3D &p1, const Point3D &p2, con
 		}
 		long double* depth = lerp<long double>(x1, z1, x2, z2);
 		for(int j = 0; j < x2-x1; j++){
-			int ind = x1+j+portWidth*((int)points[0].y+i);
+			int ind = x1+j+viewPort.width*((int)points[0].y+i);
 			if(depth[j] > depthInverse[ind]){
 				depthInverse[ind] = depth[j];
-				viewPort[ind] = color.c;
+				viewPort.pixels[x1+j][(int)points[0].y+i] = color;
 			}
 		}
 	}
 }
 
-void Scene::render(const proj::Instance &inst){
-	Point3D points[inst.getNumVertices()];
-	for(int i = 0; i < inst.getNumVertices(); i++)
-		points[i] = inst.getVertices()[i].transform(camera);
+void Scene::render(const Instance &inst){
+	Model triangles = transformModel(inst.model);
 
-	std::forward_list<Triangle> triangles;
-	for(int* t: inst.getTriangles()){
-
-	}
-
-	for(int i = 0; i < inst.getNumTriangles(); i++){
-		int* triangle = inst.getTriangles()[i];
-		int numCulled = 0;
-		int numNotCulled = 0;
-		int culled[3];
-		int notCulled[3];
-
-		for(int i = 0; i < 3; i++){
-			int j;
-			for(j = 0; j < numCullingPlanes; j++){
-				if(distanceToUnitPlane(points[triangle[i]], cullingPlanes[j]) < 0){
-					culled[numCulled++] = triangle[i];
-					break;
-				}
-			}
-			if(j == numCullingPlanes)
-				notCulled[numNotCulled++] = triangle[i];
-		}
-
-		if(numCulled == 0){
-			Color color(rand());
-			drawTriangle(color, points[triangle[0]], points[triangle[1]], points[triangle[2]]);
-
-		}
-		else if(numCulled == 1){
-			Color color(rand());
-			Point3D intersect1 = clipLine(points[culled[0]], points[notCulled[0]]);
-			Point3D intersect2 = clipLine(points[culled[0]], points[notCulled[1]]);
-			drawTriangle(color, points[notCulled[0]], points[notCulled[1]], intersect1);
-			drawTriangle(color, points[notCulled[1]], intersect1, intersect2);
-		}
-		else if(numCulled == 2){
-			Color color(rand());
-			Point3D intersect1 = clipLine(points[culled[0]], points[notCulled[0]]);
-			Point3D intersect2 = clipLine(points[culled[1]], points[notCulled[0]]);
-			drawTriangle(color, points[notCulled[0]], intersect1, intersect2);
-		}
+	for(auto it = triangles.begin(); it != triangles.end(); it++){
+		Vertex culled[3];
+		Vertex notCulled[3];
+		int numCulled;
 	}
 }
 
-void Scene::wireframe(const proj::Instance &inst){
+void Scene::setRenderSettings(RenderSettings* settings){
+	this->settings = settings;
+}
 
+Model Scene::transformModel(Model* model){
+	Model triangles;
+	for(auto it = model->begin(); it != model->end(); it++){
+		Vertex triangle[3];
+		triangle[0].position = (*it)[0].position.transform(camera);
+		triangle[1].position = (*it)[1].position.transform(camera);
+		triangle[2].position = (*it)[2].position.transform(camera);
+		triangles.push_front(triangle);
+	}
+	return triangles;
 }
 
 void Scene::clear(){
-	for(int i = 0; i < portWidth*portHeight; i++){
-		viewPort[i] = 0xFFFFFF;
-		depthInverse[i] = 0;
+	for(int i = 0; i < viewPort.width; i++){
+		for(int j = 0; j < viewPort.height; j++){
+			viewPort.pixels[i][j] = 0xFFFFFF;
+			depthInverse[i] = 0;
+		}
 	}
 }

@@ -11,8 +11,8 @@
 bool cubeInit = false;
 
 namespace shapes{
-	proj::Model getCube(){
-		proj::Model cube(8, 12);
+	asp::Model getCube(){
+		asp::Model cube(8, 12);
 		cubeInit = true;
 		cube.vertices = new math3d::Point3D[8];
 		for(int i = 0; i < 8; i++){
