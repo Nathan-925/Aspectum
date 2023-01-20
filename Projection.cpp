@@ -22,11 +22,11 @@ Color Texture::getColor(double x, double y){
 }
 
 Scene::Scene(int width, int height) :
-		viewPort(width, height),
 		depthInverse(new double[width*height]),
 		focalLength(width/2),
 		camera(0, 0, focalLength),
-		settings() {
+		settings(),
+		viewPort(width, height){
 	cullingPlanes.push_front(priori::Plane(0, 0, 1, -focalLength));
 	cullingPlanes.push_front(priori::Plane(width/2, 0, focalLength, 0));
 	cullingPlanes.push_front(priori::Plane(-width/2, 0, focalLength, 0));
@@ -46,16 +46,6 @@ Point3D Scene::project(const Point3D &point){
 
 double Scene::getFocalLength(double fovDegrees){
 	return viewPort.width/(2*tan((fovDegrees*M_PI/360)));
-}
-
-Point3D Scene::clipLine(Point3D culled, Point3D notCulled){
-	Point3D clipped = culled;
-
-	for(auto it = cullingPlanes.begin(); it != cullingPlanes.end(); it++)
-		if(distanceToUnitPlane(clipped, *it) < 0)
-			clipped = intersectionToPlane(*it, clipped, notCulled);
-
-	return clipped;
 }
 
 void Scene::drawTriangle(Color &color, const Point3D &p1, const Point3D &p2, const Point3D &p3){
@@ -124,11 +114,7 @@ void Scene::drawTriangle(Color &color, const Point3D &p1, const Point3D &p2, con
 void Scene::render(const Instance &inst){
 	Model triangles = transformModel(inst.model);
 
-	for(auto it = triangles.begin(); it != triangles.end(); it++){
-		Vertex culled[3];
-		Vertex notCulled[3];
-		int numCulled;
-	}
+
 }
 
 void Scene::setRenderSettings(RenderSettings* settings){
@@ -139,12 +125,22 @@ Model Scene::transformModel(Model* model){
 	Model triangles;
 	for(auto it = model->begin(); it != model->end(); it++){
 		Vertex triangle[3];
+		triangle[0] = (*it)[0];
 		triangle[0].position = (*it)[0].position.transform(camera);
+		triangle[1] = (*it)[1];
 		triangle[1].position = (*it)[1].position.transform(camera);
+		triangle[2] = (*it)[2];
 		triangle[2].position = (*it)[2].position.transform(camera);
 		triangles.push_front(triangle);
 	}
 	return triangles;
+}
+
+void cull(Model &triangles){
+	for(auto it = triangles.begin(); it != triangles.end(); it++){
+		Vertex culled[3];
+		int numCulled;
+	}
 }
 
 void Scene::clear(){

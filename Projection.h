@@ -18,8 +18,11 @@
 
 namespace asp{
 
+	struct Texture;
+
 	struct Vertex{
 		priori::Point3D position;
+		asp::Texture* texture;
 		priori::Point texel;
 		priori::Vector3D normal;
 	};
@@ -58,6 +61,7 @@ namespace asp{
 		void drawTriangle(priori::Color &color, const priori::Point3D &p1, const priori::Point3D &p2, const priori::Point3D &p3);
 		priori::Point3D project(const priori::Point3D &point);
 		asp::Model transformModel(asp::Model* model);
+		void cull(asp::Model &triangles);
 
 	public:
 		priori::Image viewPort;
