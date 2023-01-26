@@ -21,33 +21,33 @@ using namespace asp;
 
 Vertex Vertex::operator+(const Vertex &other){
 	Vertex out(*this);
+	out.color += other.color;
 	out.position += other.position;
 	out.texel += other.texel;
-	out.normal += other.normal;
 	return out;
 }
 
 Vertex Vertex::operator-(const Vertex &other){
 	Vertex out(*this);
+	out.color -= other.color;
 	out.position -= other.position;
 	out.texel -= other.texel;
-	out.normal -= other.normal;
 	return out;
 }
 
 Vertex Vertex::operator*(const Vertex &other){
 	Vertex out(*this);
+	out.color *= other.color;
 	out.position *= other.position;
 	out.texel *= other.texel;
-	out.normal *= other.normal;
 	return out;
 }
 
 Vertex Vertex::operator/(const Vertex &other){
 	Vertex out(*this);
+	out.color /= other.color;
 	out.position /= other.position;
 	out.texel /= other.texel;
-	out.normal /= other.normal;
 	return out;
 }
 
@@ -69,17 +69,17 @@ Vertex Vertex::operator/=(const Vertex &other){
 
 Vertex Vertex::operator*(const double &d){
 	Vertex out(*this);
+	out.color *= d;
 	out.position *= d;
 	out.texel *= d;
-	out.normal *= d;
 	return out;
 }
 
 Vertex Vertex::operator/(const double &d){
 	Vertex out(*this);
+	out.color /= d;
 	out.position /= d;
 	out.texel /= d;
-	out.normal /= d;
 	return out;
 }
 
@@ -155,13 +155,17 @@ void Scene::drawTriangle(Triangle triangle){
 	int dy02 = abs((int)triangle[2].position.y-(int)triangle[0].position.y);
 	int dy12 = abs((int)triangle[2].position.y-(int)triangle[1].position.y);
 
-	Vertex* l01 = lerp<Vertex>(0, triangle[0], dy01, triangle[1]);
-	Vertex* l02 = lerp<Vertex>(0, triangle[0], dy02, triangle[2]);
-	Vertex* l12 = lerp<Vertex>(0, triangle[1], dy12, triangle[2]);
+	forward_list<Vertex> l01 = lerp<Vertex>(0, triangle[0], dy01, triangle[1]);
+	forward_list<Vertex> l02 = lerp<Vertex>(0, triangle[0], dy02, triangle[2]);
+	forward_list<Vertex> l12 = lerp<Vertex>(0, triangle[1], dy12, triangle[2]);
+	l12.pop_front();
 
-	for(int i = 0; i <= dy02; i++){
-		Vertex v1 = l02[i];
-		Vertex v2 = i < dy01 ? l01[i] : l12[i-dy01];
+	auto it01 = l01.begin();
+	auto it12 = l12.begin();
+
+	for(auto it02 = l02.begin(); it02 != l02.end(); it02++){
+		Vertex v1 = *it02;
+		Vertex v2 = it01 != l01.end() ? *it01++ : *it12++;
 		if(v1.position.x > v2.position.x)
 			swap(v1, v2);
 

@@ -25,7 +25,6 @@ namespace asp{
 		priori::Color color;
 		asp::Texture* texture;
 		priori::Point texel;
-		priori::Vector3D normal;
 
 		Vertex operator+(const Vertex &other);
 		Vertex operator-(const Vertex &other);
@@ -46,6 +45,7 @@ namespace asp{
 
 	struct Triangle{
 		Vertex points[3];
+		priori::Vector3D normals[3];
 
 		Vertex operator[](const int &n);
 	};
@@ -71,6 +71,9 @@ namespace asp{
 
 	struct RenderSettings{
 		bool wireframe = false;
+		enum{
+			Flat, Gouraund, Phong
+		}shading = Phong;
 	};
 
 	class Scene{
@@ -81,6 +84,7 @@ namespace asp{
 
 		Vertex clipLine(Vertex culled, Vertex notCulled);
 		void drawTriangle(Triangle triangle);
+		void drawPixel()
 		priori::Point3D project(const priori::Point3D &point);
 		asp::Model transformModel(asp::Model &model);
 		void cull(asp::Model &triangles);
