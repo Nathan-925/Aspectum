@@ -7,6 +7,7 @@
 #include <cmath>
 #include <forward_list>
 #include <iterator>
+#include <algorithm>
 #include <iostream>
 
 #include "Projection.h"
@@ -116,9 +117,9 @@ Scene::~Scene(){
 }
 
 Point3D Scene::project(const Point3D &point){
-	return Point3D(viewPort.width/2+(point.x*focalLength)/point.z,
-				   viewPort.height/2-(point.y*focalLength)/point.z,
-				   point.z);
+	return  Point3D(viewPort.width/2+(point.x*focalLength)/point.z,
+				   	viewPort.height/2-(point.y*focalLength)/point.z,
+					1/point.z);
 }
 
 double Scene::getFocalLength(double fovDegrees){
@@ -135,44 +136,37 @@ Vertex Scene::clipLine(Vertex culled, Vertex notCulled){
 	return culled;
 }
 
-void Scene::drawTriangle(Color &color, const Point3D &p1, const Point3D &p2, const Point3D &p3){
+void Scene::drawTriangle(Triangle triangle){
 	if(settings->wireframe){
-		Point3D p2d1 = project(p1);
-		Point3D p2d2 = project(p2);
-		Point3D p2d3 = project(p3);
-		priori::drawTriangle(viewPort, color, Point(p2d1.x, p2d1.y),
-											  Point(p2d2.x, p2d2.y),
-											  Point(p2d3.x, p2d3.y));
+		priori::drawTriangle(viewPort, triangle[0].color, Point(triangle[0].position.x, triangle[0].position.y),
+											  	  	  	  Point(triangle[1].position.x, triangle[1].position.y),
+											  	  	  	  Point(triangle[2].position.x, triangle[2].position.y));
 		return;
 	}
 
-	Point3D points[] = {project(p1), project(p2), project(p3)};
-	if(points[0].y > points[1].y){
-		Point3D temp = points[0];
-		points[0] = points[1];
-		points[1] = temp;
-	}
-	if(points[0].y > points[2].y){
-		Point3D temp = points[0];
-		points[0] = points[2];
-		points[2] = temp;
-	}
-	if(points[1].y > points[2].y){
-		Point3D temp = points[1];
-		points[1] = points[2];
-		points[2] = temp;
-	}
+	if(triangle[0].position.y > triangle[1].position.y)
+		swap(triangle[0], triangle[1]);
+	if(triangle[0].position.y > triangle[2].position.y)
+		swap(triangle[0], triangle[2]);
+	if(triangle[1].position.y > triangle[2].position.y)
+		swap(triangle[1], triangle[2]);
 
-	int dy01 = abs((int)points[1].y-(int)points[0].y);
-	int dy02 = abs((int)points[2].y-(int)points[0].y);
+	int dy01 = abs((int)triangle[1].position.y-(int)triangle[0].position.y);
+	int dy02 = abs((int)triangle[2].position.y-(int)triangle[0].position.y);
+	int dy12 = abs((int)triangle[2].position.y-(int)triangle[1].position.y);
 
-	long double* x01 = lerp<long double>(points[0].y, points[0].x, points[1].y, points[1].x);
-	long double* x02 = lerp<long double>(points[0].y, points[0].x, points[2].y, points[2].x);
-	long double* x12 = lerp<long double>(points[1].y, points[1].x, points[2].y, points[2].x);
+	Vertex* l01 = lerp<Vertex>(0, triangle[0], dy01, triangle[1]);
+	Vertex* l02 = lerp<Vertex>(0, triangle[0], dy02, triangle[2]);
+	Vertex* l12 = lerp<Vertex>(0, triangle[1], dy12, triangle[2]);
 
-	long double* z01 = lerp<long double>(points[0].y, 1/points[0].z, points[1].y, 1/points[1].z);
-	long double* z02 = lerp<long double>(points[0].y, 1/points[0].z, points[2].y, 1/points[2].z);
-	long double* z12 = lerp<long double>(points[1].y, 1/points[1].z, points[2].y, 1/points[2].z);
+	for(int i = 0; i <= dy02; i++){
+		Vertex v1 = l02[i];
+		Vertex v2 = i < dy01 ? l01[i] : l12[i-dy01];
+		if(v1.position.x > v2.position.x)
+			swap(v1, v2);
+
+
+	}
 
 	for(int i = 0; i < dy02; i++){
 		int x1 = x02[i];
@@ -206,6 +200,13 @@ void Scene::render(const Instance &inst){
 
 	cull(triangles);
 	cout << "culled" << endl;
+
+	for(auto it = triangles.begin(); it != triangles.end(); it++){
+		(*it)[0].position = project((*it)[0].position);
+		(*it)[1].position = project((*it)[1].position);
+		(*it)[2].position = project((*it)[2].position);
+		drawTriangle(*it);
+	}
 }
 
 void Scene::setRenderSettings(RenderSettings* settings){

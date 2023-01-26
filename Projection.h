@@ -22,6 +22,7 @@ namespace asp{
 
 	struct Vertex{
 		priori::Point3D position;
+		priori::Color color;
 		asp::Texture* texture;
 		priori::Point texel;
 		priori::Vector3D normal;
@@ -79,7 +80,7 @@ namespace asp{
 		RenderSettings* settings;
 
 		Vertex clipLine(Vertex culled, Vertex notCulled);
-		void drawTriangle(priori::Color &color, const priori::Point3D &p1, const priori::Point3D &p2, const priori::Point3D &p3);
+		void drawTriangle(Triangle triangle);
 		priori::Point3D project(const priori::Point3D &point);
 		asp::Model transformModel(asp::Model &model);
 		void cull(asp::Model &triangles);
