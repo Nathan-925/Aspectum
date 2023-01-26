@@ -25,9 +25,31 @@ namespace asp{
 		asp::Texture* texture;
 		priori::Point texel;
 		priori::Vector3D normal;
+
+		Vertex operator+(const Vertex &other);
+		Vertex operator-(const Vertex &other);
+		Vertex operator*(const Vertex &other);
+		Vertex operator/(const Vertex &other);
+
+		Vertex operator+=(const Vertex &other);
+		Vertex operator-=(const Vertex &other);
+		Vertex operator*=(const Vertex &other);
+		Vertex operator/=(const Vertex &other);
+
+		Vertex operator*(const double &d);
+		Vertex operator/(const double &d);
+
+		Vertex operator*=(const double &d);
+		Vertex operator/=(const double &d);
 	};
 
-	typedef std::forward_list<Vertex[3]> Model;
+	struct Triangle{
+		Vertex points[3];
+
+		Vertex operator[](const int &n);
+	};
+
+	typedef std::forward_list<Triangle> Model;
 
 	struct Texture{
 		priori::Image image;
@@ -52,19 +74,19 @@ namespace asp{
 
 	class Scene{
 		double* depthInverse;
-		double focalLength;
 		priori::TransformationMatrix camera;
 		std::forward_list<priori::Plane> cullingPlanes;
 		RenderSettings* settings;
 
-		priori::Point3D clipLine(priori::Point3D culled, priori::Point3D notCulled);
+		Vertex clipLine(Vertex culled, Vertex notCulled);
 		void drawTriangle(priori::Color &color, const priori::Point3D &p1, const priori::Point3D &p2, const priori::Point3D &p3);
 		priori::Point3D project(const priori::Point3D &point);
-		asp::Model transformModel(asp::Model* model);
+		asp::Model transformModel(asp::Model &model);
 		void cull(asp::Model &triangles);
 
 	public:
 		priori::Image viewPort;
+		double focalLength;
 
 		Scene(int width, int height);
 		~Scene();

@@ -7,15 +7,92 @@
 #include <cmath>
 #include <forward_list>
 #include <iterator>
+#include <iostream>
 
 #include "Projection.h"
-#include "Rasterizer.h"
 
 #include "priori/Math.h"
+#include "priori/Graphical.h"
 
 using namespace std;
 using namespace priori;
 using namespace asp;
+
+Vertex Vertex::operator+(const Vertex &other){
+	Vertex out(*this);
+	out.position += other.position;
+	out.texel += other.texel;
+	out.normal += other.normal;
+	return out;
+}
+
+Vertex Vertex::operator-(const Vertex &other){
+	Vertex out(*this);
+	out.position -= other.position;
+	out.texel -= other.texel;
+	out.normal -= other.normal;
+	return out;
+}
+
+Vertex Vertex::operator*(const Vertex &other){
+	Vertex out(*this);
+	out.position *= other.position;
+	out.texel *= other.texel;
+	out.normal *= other.normal;
+	return out;
+}
+
+Vertex Vertex::operator/(const Vertex &other){
+	Vertex out(*this);
+	out.position /= other.position;
+	out.texel /= other.texel;
+	out.normal /= other.normal;
+	return out;
+}
+
+Vertex Vertex::operator+=(const Vertex &other){
+	return Vertex(*this+other);
+}
+
+Vertex Vertex::operator-=(const Vertex &other){
+	return Vertex(*this-other);
+}
+
+Vertex Vertex::operator*=(const Vertex &other){
+	return Vertex(*this*other);
+}
+
+Vertex Vertex::operator/=(const Vertex &other){
+	return Vertex(*this/other);
+}
+
+Vertex Vertex::operator*(const double &d){
+	Vertex out(*this);
+	out.position *= d;
+	out.texel *= d;
+	out.normal *= d;
+	return out;
+}
+
+Vertex Vertex::operator/(const double &d){
+	Vertex out(*this);
+	out.position /= d;
+	out.texel /= d;
+	out.normal /= d;
+	return out;
+}
+
+Vertex Vertex::operator*=(const double &d){
+	return Vertex(*this*d);
+}
+
+Vertex Vertex::operator/=(const double &d){
+	return Vertex(*this/d);
+}
+
+Vertex Triangle::operator[](const int &n){
+	return points[n];
+}
 
 Color Texture::getColor(double x, double y){
 	return image.pixels[(int)(x*image.width)][(int)(y*image.height)];
@@ -23,10 +100,10 @@ Color Texture::getColor(double x, double y){
 
 Scene::Scene(int width, int height) :
 		depthInverse(new double[width*height]),
-		focalLength(width/2),
 		camera(0, 0, focalLength),
 		settings(),
-		viewPort(width, height){
+		viewPort(width, height),
+		focalLength(width/2){
 	cullingPlanes.push_front(priori::Plane(0, 0, 1, -focalLength));
 	cullingPlanes.push_front(priori::Plane(width/2, 0, focalLength, 0));
 	cullingPlanes.push_front(priori::Plane(-width/2, 0, focalLength, 0));
@@ -48,12 +125,22 @@ double Scene::getFocalLength(double fovDegrees){
 	return viewPort.width/(2*tan((fovDegrees*M_PI/360)));
 }
 
+Vertex Scene::clipLine(Vertex culled, Vertex notCulled){
+	for(auto it = cullingPlanes.begin(); it != cullingPlanes.end(); it++){
+		if(distanceToPlane(culled.position, *it) < 0){
+			double d = intersectionPercent(*it, culled.position, notCulled.position);
+			culled = lerp<Vertex>(d, culled, notCulled);
+		}
+	}
+	return culled;
+}
+
 void Scene::drawTriangle(Color &color, const Point3D &p1, const Point3D &p2, const Point3D &p3){
 	if(settings->wireframe){
 		Point3D p2d1 = project(p1);
 		Point3D p2d2 = project(p2);
 		Point3D p2d3 = project(p3);
-		raster::drawTriangle(viewPort, color, Point(p2d1.x, p2d1.y),
+		priori::drawTriangle(viewPort, color, Point(p2d1.x, p2d1.y),
 											  Point(p2d2.x, p2d2.y),
 											  Point(p2d3.x, p2d3.y));
 		return;
@@ -112,34 +199,68 @@ void Scene::drawTriangle(Color &color, const Point3D &p1, const Point3D &p2, con
 }
 
 void Scene::render(const Instance &inst){
-	Model triangles = transformModel(inst.model);
+	cout << "render" << endl;
 
+	Model triangles = transformModel(*inst.model);
+	cout << "transformed" << endl;
 
+	cull(triangles);
+	cout << "culled" << endl;
 }
 
 void Scene::setRenderSettings(RenderSettings* settings){
 	this->settings = settings;
 }
 
-Model Scene::transformModel(Model* model){
+Model Scene::transformModel(Model &model){
 	Model triangles;
-	for(auto it = model->begin(); it != model->end(); it++){
-		Vertex triangle[3];
-		triangle[0] = (*it)[0];
-		triangle[0].position = (*it)[0].position.transform(camera);
-		triangle[1] = (*it)[1];
-		triangle[1].position = (*it)[1].position.transform(camera);
-		triangle[2] = (*it)[2];
-		triangle[2].position = (*it)[2].position.transform(camera);
+	for(auto it = model.begin(); it != model.end(); it++){
+		Triangle triangle = *it;
+		for(int i = 0; i < 3; i++)
+			triangle[i].position = camera.transform(triangle[i].position);
 		triangles.push_front(triangle);
 	}
 	return triangles;
 }
 
-void cull(Model &triangles){
+void Scene::cull(Model &triangles){
 	for(auto it = triangles.begin(); it != triangles.end(); it++){
-		Vertex culled[3];
+		int culled[3];
 		int numCulled;
+		for(int i = 0; i < 3; i++){
+			bool cull = false;
+			for(auto planeIt = cullingPlanes.begin(); planeIt != cullingPlanes.end(); planeIt++){
+				if(distanceToPlane((*it)[i].position, *planeIt) < 0){
+					cull = true;
+					break;
+				}
+			}
+			if(cull)
+				culled[numCulled++] = i;
+			else
+				culled[3-i-numCulled] = i;
+		}
+		cout << numCulled << endl;
+
+		if(numCulled == 3){
+			*it = *triangles.begin();
+			triangles.pop_front();
+		}
+		else if(numCulled == 2){
+			(*it)[0] = clipLine((*it)[culled[0]], (*it)[culled[2]]);
+			(*it)[1] = clipLine((*it)[culled[1]], (*it)[culled[2]]);
+		}
+		else if(numCulled == 1){
+			Triangle clipping;
+			clipping[1] = (*it)[culled[1]];
+			clipping[2] = (*it)[culled[2]];
+			clipping[0] = clipLine((*it)[culled[0]], (*it)[culled[1]]);
+
+			(*it)[culled[0]] = clipLine((*it)[culled[0]], (*it)[culled[2]]);
+
+			triangles.insert_after(it, clipping);
+			it++;
+		}
 	}
 }
 
