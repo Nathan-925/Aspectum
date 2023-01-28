@@ -6,6 +6,7 @@
  */
 #include <iostream>
 #include <cmath>
+#include <forward_list>
 
 #include "Projection.h"
 #include "Shapes.h"
@@ -18,18 +19,31 @@ using namespace priori;
 using namespace asp;
 
 int main(){
+	forward_list<int> list = lerp<int>(0, 0, 10, 20);
+	for(auto it = list.begin(); it != list.end(); it++)
+		cout << *it << endl;
+
 	Triangle triangle;
-	triangle[0].position = Point3D(0, 50, 100);
-	triangle[1].position = Point3D(-50, -50, 100);
-	triangle[2].position = Point3D(50, -50, 100);
+	triangle.color = Color(100, 0, 200);
+
+	triangle[0].position = Point3D(0, 25, 100);
+	triangle[1].position = Point3D(0, -25, 100);
+	triangle[2].position = Point3D(25, 0, 100);
+
 	Model model;
 	model.push_front(triangle);
 
 	Instance instance(&model);
 
 	Scene scene(100, 100);
-	scene.focalLength = scene.getFocalLength(90);
-	cout << scene.focalLength << endl;
+
+	RenderSettings settings;
+	settings.textures = false;
+	settings.wireframe = false;
+	scene.settings = &settings;
 
 	scene.render(instance);
+	cout << "end render" << endl;
+
+	writebmp("test.bmp", scene.viewPort);
 }

@@ -21,7 +21,7 @@ using namespace asp;
 
 Vertex Vertex::operator+(const Vertex &other){
 	Vertex out(*this);
-	out.color += other.color;
+	out.shade += other.shade;
 	out.position += other.position;
 	out.texel += other.texel;
 	return out;
@@ -29,7 +29,7 @@ Vertex Vertex::operator+(const Vertex &other){
 
 Vertex Vertex::operator-(const Vertex &other){
 	Vertex out(*this);
-	out.color -= other.color;
+	out.shade -= other.shade;
 	out.position -= other.position;
 	out.texel -= other.texel;
 	return out;
@@ -37,7 +37,7 @@ Vertex Vertex::operator-(const Vertex &other){
 
 Vertex Vertex::operator*(const Vertex &other){
 	Vertex out(*this);
-	out.color *= other.color;
+	out.shade *= other.shade;
 	out.position *= other.position;
 	out.texel *= other.texel;
 	return out;
@@ -45,7 +45,7 @@ Vertex Vertex::operator*(const Vertex &other){
 
 Vertex Vertex::operator/(const Vertex &other){
 	Vertex out(*this);
-	out.color /= other.color;
+	out.shade /= other.shade;
 	out.position /= other.position;
 	out.texel /= other.texel;
 	return out;
@@ -69,7 +69,7 @@ Vertex Vertex::operator/=(const Vertex &other){
 
 Vertex Vertex::operator*(const double &d){
 	Vertex out(*this);
-	out.color *= d;
+	out.shade *= d;
 	out.position *= d;
 	out.texel *= d;
 	return out;
@@ -77,7 +77,7 @@ Vertex Vertex::operator*(const double &d){
 
 Vertex Vertex::operator/(const double &d){
 	Vertex out(*this);
-	out.color /= d;
+	out.shade /= d;
 	out.position /= d;
 	out.texel /= d;
 	return out;
@@ -91,7 +91,7 @@ Vertex Vertex::operator/=(const double &d){
 	return Vertex(*this/d);
 }
 
-Vertex Triangle::operator[](const int &n){
+Vertex& Triangle::operator[](const int &n){
 	return points[n];
 }
 
@@ -100,30 +100,42 @@ Color Texture::getColor(double x, double y){
 }
 
 Scene::Scene(int width, int height) :
-		depthInverse(new double[width*height]),
+		depthInverse(new double*[width]),
 		camera(0, 0, focalLength),
-		settings(),
 		viewPort(width, height),
-		focalLength(width/2){
-	cullingPlanes.push_front(priori::Plane(0, 0, 1, -focalLength));
-	cullingPlanes.push_front(priori::Plane(width/2, 0, focalLength, 0));
-	cullingPlanes.push_front(priori::Plane(-width/2, 0, focalLength, 0));
-	cullingPlanes.push_front(priori::Plane(0, -height/2, focalLength, 0));
-	cullingPlanes.push_front(priori::Plane(0, height/2, focalLength, 0));
+		settings(){
+	for(int i = 0; i < width; i++)
+		depthInverse[i] = new double[height];
+
+	clear();
+
+	setFOV(90);
 };
 
 Scene::~Scene(){
+	for(int i = 0; i < viewPort.width; i++)
+		delete[] depthInverse[i];
 	delete[] depthInverse;
 }
 
-Point3D Scene::project(const Point3D &point){
-	return  Point3D(viewPort.width/2+(point.x*focalLength)/point.z,
-				   	viewPort.height/2-(point.y*focalLength)/point.z,
-					1/point.z);
+Triangle Scene::project(Triangle &triangle){
+	for(int i = 0; i < 3; i++){
+		triangle[i].position = Point3D(viewPort.width/2+(triangle[i].position.x*focalLength)/triangle[i].position.z,
+				   					   viewPort.height/2-(triangle[i].position.y*focalLength)/triangle[i].position.z,
+									   1/triangle[i].position.z);
+	}
+	return triangle;
 }
 
-double Scene::getFocalLength(double fovDegrees){
-	return viewPort.width/(2*tan((fovDegrees*M_PI/360)));
+void Scene::setFOV(double fov){
+	focalLength = viewPort.width/(2*tan((fov*M_PI/360)));
+
+	cullingPlanes.clear();
+	cullingPlanes.push_front(Plane(0, 0, 1, focalLength));
+	cullingPlanes.push_front(Plane(viewPort.width/2, 0, focalLength, 0));
+	cullingPlanes.push_front(Plane(-viewPort.width/2, 0, focalLength, 0));
+	cullingPlanes.push_front(Plane(0, -viewPort.height/2, focalLength, 0));
+	cullingPlanes.push_front(Plane(0, viewPort.height/2, focalLength, 0));
 }
 
 Vertex Scene::clipLine(Vertex culled, Vertex notCulled){
@@ -138,59 +150,62 @@ Vertex Scene::clipLine(Vertex culled, Vertex notCulled){
 
 void Scene::drawTriangle(Triangle triangle){
 	if(settings->wireframe){
-		priori::drawTriangle(viewPort, triangle[0].color, Point(triangle[0].position.x, triangle[0].position.y),
-											  	  	  	  Point(triangle[1].position.x, triangle[1].position.y),
-											  	  	  	  Point(triangle[2].position.x, triangle[2].position.y));
+		cout << "wireframe" << endl;
+		priori::drawTriangle(viewPort, triangle.color, Point(triangle[0].position.x, triangle[0].position.y),
+											  	  	   Point(triangle[1].position.x, triangle[1].position.y),
+											  	  	   Point(triangle[2].position.x, triangle[2].position.y));
 		return;
 	}
 
-	if(triangle[0].position.y > triangle[1].position.y)
-		swap(triangle[0], triangle[1]);
-	if(triangle[0].position.y > triangle[2].position.y)
-		swap(triangle[0], triangle[2]);
-	if(triangle[1].position.y > triangle[2].position.y)
-		swap(triangle[1], triangle[2]);
+	cout << "draw" << endl;
 
-	int dy01 = abs((int)triangle[1].position.y-(int)triangle[0].position.y);
-	int dy02 = abs((int)triangle[2].position.y-(int)triangle[0].position.y);
-	int dy12 = abs((int)triangle[2].position.y-(int)triangle[1].position.y);
+	Vertex v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
+	if(v0.position.y > v1.position.y)
+		swap(v0, v1);
+	if(v0.position.y > v2.position.y)
+		swap(v0, v2);
+	if(v1.position.y > v2.position.y)
+		swap(v1, v2);
 
-	forward_list<Vertex> l01 = lerp<Vertex>(0, triangle[0], dy01, triangle[1]);
-	forward_list<Vertex> l02 = lerp<Vertex>(0, triangle[0], dy02, triangle[2]);
-	forward_list<Vertex> l12 = lerp<Vertex>(0, triangle[1], dy12, triangle[2]);
+	int dy01 = round(v1.position.y-v0.position.y);
+	int dy02 = round(v2.position.y-v0.position.y);
+	int dy12 = round(v2.position.y-v1.position.y);
+
+	forward_list<Vertex> l01 = lerp<Vertex>(0, v0, dy01, v1);
+	forward_list<Vertex> l02 = lerp<Vertex>(0, v0, dy02, v2);
+	forward_list<Vertex> l12 = lerp<Vertex>(0, v1, dy12, v2);
 	l12.pop_front();
 
 	auto it01 = l01.begin();
+	auto it02 = l02.begin();
 	auto it12 = l12.begin();
 
-	for(auto it02 = l02.begin(); it02 != l02.end(); it02++){
-		Vertex v1 = *it02;
+	cout << dy01 << endl;
+	cout << dy02 << endl;
+	cout << dy12 << endl;
+	cout << endl;
+	cout << v0.position.y << endl;
+	cout << v1.position.y << endl;
+	cout << v2.position.y << endl;
+	for(int i = 0; i < dy02; i++){
+		Vertex v1 = *it02++;
 		Vertex v2 = it01 != l01.end() ? *it01++ : *it12++;
 		if(v1.position.x > v2.position.x)
 			swap(v1, v2);
 
+		v1.position.x = round(v1.position.x);
+		v2.position.x = round(v2.position.x);
+		cout << "x pos " << v1.position.x << " " << v2.position.x << endl;
+		forward_list<Vertex> line = lerp<Vertex>(v1.position.x, v1, v2.position.x, v2);
+		int y = v0.position.y+i;
+		for(auto it = line.begin(); it != line.end(); it++){
+			int x = (*it).position.x;
+			if((*it).position.z > depthInverse[x][y]){
+				depthInverse[x][y] = (*it).position.z;
 
-	}
-
-	for(int i = 0; i < dy02; i++){
-		int x1 = x02[i];
-		int x2 = i < dy01 ? x01[i] : x12[i-dy01];
-		long double z1 = z02[i];
-		long double z2 = i < dy01 ? z01[i] : z12[i-dy01];
-		if(x1 > x2){
-			long double temp = x1;
-			x1 = x2;
-			x2 = temp;
-			temp = z1;
-			z1 = z2;
-			z2 = temp;
-		}
-		long double* depth = lerp<long double>(x1, z1, x2, z2);
-		for(int j = 0; j < x2-x1; j++){
-			int ind = x1+j+viewPort.width*((int)points[0].y+i);
-			if(depth[j] > depthInverse[ind]){
-				depthInverse[ind] = depth[j];
-				viewPort.pixels[x1+j][(int)points[0].y+i] = color;
+				Color base = settings->textures ? triangle.texture->getColor((*it).texel.x, (*it).texel.y) : triangle.color;
+				viewPort[x][y] = base*(*it).shade;
+				cout << x << " " << y << " " << hex << viewPort[x][y] << dec << endl;
 			}
 		}
 	}
@@ -205,25 +220,38 @@ void Scene::render(const Instance &inst){
 	cull(triangles);
 	cout << "culled" << endl;
 
+	shadeVertices(triangles);
+	cout << "shaded" << endl;
+
 	for(auto it = triangles.begin(); it != triangles.end(); it++){
-		(*it)[0].position = project((*it)[0].position);
-		(*it)[1].position = project((*it)[1].position);
-		(*it)[2].position = project((*it)[2].position);
+		cout << "not projected " << (*it)[0].position.y << endl;
+		cout << "not projected " << (*it)[1].position.y << endl;
+		cout << "not projected " << (*it)[2].position.y << endl;
+		project(*it);
+		cout << "projected " << (*it)[0].position.y << endl;
+		cout << "projected " << (*it)[1].position.y << endl;
+		cout << "projected " << (*it)[2].position.y << endl;
 		drawTriangle(*it);
 	}
-}
-
-void Scene::setRenderSettings(RenderSettings* settings){
-	this->settings = settings;
 }
 
 Model Scene::transformModel(Model &model){
 	Model triangles;
 	for(auto it = model.begin(); it != model.end(); it++){
 		Triangle triangle = *it;
+		cout << (*it)[0].position.y << endl;
+		cout << (*it)[1].position.y << endl;
+		cout << (*it)[2].position.y << endl;
+		cout << "pre transform " << triangle[0].position.y << endl;
+		cout << "pre transform " << triangle[1].position.y << endl;
+		cout << "pre transform " << triangle[2].position.y << endl;
 		for(int i = 0; i < 3; i++)
 			triangle[i].position = camera.transform(triangle[i].position);
 		triangles.push_front(triangle);
+
+		cout << "transform " << triangle[0].position.y << endl;
+		cout << "transform " << triangle[1].position.y << endl;
+		cout << "transform " << triangle[2].position.y << endl;
 	}
 	return triangles;
 }
@@ -231,7 +259,7 @@ Model Scene::transformModel(Model &model){
 void Scene::cull(Model &triangles){
 	for(auto it = triangles.begin(); it != triangles.end(); it++){
 		int culled[3];
-		int numCulled;
+		int numCulled = 0;
 		for(int i = 0; i < 3; i++){
 			bool cull = false;
 			for(auto planeIt = cullingPlanes.begin(); planeIt != cullingPlanes.end(); planeIt++){
@@ -269,11 +297,19 @@ void Scene::cull(Model &triangles){
 	}
 }
 
+void Scene::shadeVertices(Model &triangles){
+	for(auto it = triangles.begin(); it != triangles.end(); it++){
+		(*it)[0].shade = 0xFFFFFF;
+		(*it)[1].shade = 0xFFFFFF;
+		(*it)[2].shade = 0xFFFFFF;
+	}
+}
+
 void Scene::clear(){
 	for(int i = 0; i < viewPort.width; i++){
 		for(int j = 0; j < viewPort.height; j++){
 			viewPort.pixels[i][j] = 0xFFFFFF;
-			depthInverse[i] = 0;
+			depthInverse[i][j] = 0;
 		}
 	}
 }
