@@ -18,7 +18,7 @@
 
 namespace asp{
 
-	struct Texture;
+	class Texture;
 
 	struct Vertex{
 		priori::Point3D position;
@@ -53,21 +53,19 @@ namespace asp{
 
 	typedef std::forward_list<Triangle> Model;
 
-	struct Texture{
+	class Texture{
 		priori::Image image;
 
-		Texture(Model &m, priori::Image image) : image(image) {};
+	public:
+		Texture(priori::Image image) : image(image) {};
 		priori::Color getColor(double x, double y);
 	};
 
-	class Instance{
-	public:
+	struct Instance{
 		Model* const model;
-		priori::Color* color;
-		Texture* texture;
 		priori::TransformationMatrix transform;
 
-		Instance(Model* m, priori::Color c=0xFFFFFF, Texture* t=nullptr) : model(m), color(&c), texture(t) {};
+		Instance(Model* m) : model(m) {};
 	};
 
 	struct RenderSettings{
@@ -84,11 +82,10 @@ namespace asp{
 		double focalLength;
 		std::forward_list<priori::Plane> cullingPlanes;
 
-		Vertex clipLine(Vertex culled, Vertex notCulled);
 		void drawTriangle(Triangle triangle);
 		Triangle project(Triangle &triangle);
-		asp::Model transformModel(asp::Model &model);
-		void cull(asp::Model &triangles);
+		Model transformInstance(const Instance &instance);
+		void cull(Model &triangles);
 		void shadeVertices(Model &triangles);
 
 	public:

@@ -10,8 +10,8 @@
 
 #include "Projection.h"
 
-namespace shapes{
-	asp::Model getCube();
+namespace asp{
+	Model getCube(Texture* t = nullptr);
 }
 
 #endif /* SHAPES_H_ */
