@@ -27,13 +27,9 @@ namespace asp{
 
 		Vertex operator+(const Vertex &other);
 		Vertex operator-(const Vertex &other);
-		Vertex operator*(const Vertex &other);
-		Vertex operator/(const Vertex &other);
 
 		Vertex operator+=(const Vertex &other);
 		Vertex operator-=(const Vertex &other);
-		Vertex operator*=(const Vertex &other);
-		Vertex operator/=(const Vertex &other);
 
 		Vertex operator*(const double &d);
 		Vertex operator/(const double &d);

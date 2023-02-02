@@ -35,22 +35,6 @@ Vertex Vertex::operator-(const Vertex &other){
 	return out;
 }
 
-Vertex Vertex::operator*(const Vertex &other){
-	Vertex out(*this);
-	out.shade *= other.shade;
-	out.position *= other.position;
-	out.texel *= other.texel;
-	return out;
-}
-
-Vertex Vertex::operator/(const Vertex &other){
-	Vertex out(*this);
-	out.shade /= other.shade;
-	out.position /= other.position;
-	out.texel /= other.texel;
-	return out;
-}
-
 Vertex Vertex::operator+=(const Vertex &other){
 	*this = *this+other;
 	return *this;
@@ -58,16 +42,6 @@ Vertex Vertex::operator+=(const Vertex &other){
 
 Vertex Vertex::operator-=(const Vertex &other){
 	*this = *this-other;
-	return *this;
-}
-
-Vertex Vertex::operator*=(const Vertex &other){
-	*this = *this*other;
-	return *this;
-}
-
-Vertex Vertex::operator/=(const Vertex &other){
-	*this = *this/other;
 	return *this;
 }
 
@@ -127,8 +101,8 @@ Scene::~Scene(){
 Triangle Scene::project(Triangle &triangle){
 	for(int i = 0; i < 3; i++){
 		cout << "(" << triangle[i].position.x << ", " << triangle[i].position.y << ", " << triangle[i].position.z << ")->";
-		triangle[i].position = Point3D(viewPort.width/2+((triangle[i].position.x*focalLength)/triangle[i].position.z),
-				   					   viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z),
+		triangle[i].position = Point3D(floor(viewPort.width/2+((triangle[i].position.x*focalLength)/triangle[i].position.z)),
+				   					   floor(viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z)),
 									   1/triangle[i].position.z);
 		triangle[i].texel *= triangle[i].position.z;
 		cout << "(" << triangle[i].position.x << ", " << triangle[i].position.y << ", " << triangle[i].position.z << ")" << endl;
@@ -137,14 +111,21 @@ Triangle Scene::project(Triangle &triangle){
 }
 
 void Scene::setFOV(double fov){
-	focalLength = viewPort.width/(2*tan((fov*M_PI/360)));
+	double xAngle = fov*(M_PI/360);
+	focalLength = (viewPort.width-1)/(2*tan(xAngle));
+	cout << "focal length " << focalLength << endl;
+	double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
+	cout << "xAngle " << xAngle << endl;
+	cout << "yAngle " << yAngle << endl;
+
+	double x = sin(xAngle), y = sin(yAngle);
 
 	cullingPlanes.clear();
-	cullingPlanes.push_front(Plane(Vector3D(0, 0, 1).normalize(), 0));
-	cullingPlanes.push_front(Plane(Vector3D(viewPort.width/2, 0, focalLength).normalize(), 0));
-	cullingPlanes.push_front(Plane(Vector3D(-viewPort.width/2, 0, focalLength).normalize(), 0));
-	cullingPlanes.push_front(Plane(Vector3D(0, viewPort.height/2, focalLength).normalize(), 0));
-	cullingPlanes.push_front(Plane(Vector3D(0, -viewPort.height/2, focalLength).normalize(), 0));
+	cullingPlanes.push_front(Plane(Vector3D(0, 0, 1), 0));
+	cullingPlanes.push_front(Plane(Vector3D(x, 0, cos(xAngle)), 0));
+	cullingPlanes.push_front(Plane(Vector3D(-x, 0, cos(xAngle)), 0));
+	cullingPlanes.push_front(Plane(Vector3D(0, y, cos(yAngle)), 0));
+	cullingPlanes.push_front(Plane(Vector3D(0, -y, cos(yAngle)), 0));
 }
 
 void Scene::drawTriangle(Triangle triangle){
@@ -159,8 +140,6 @@ void Scene::drawTriangle(Triangle triangle){
 		return;
 	}
 
-	cout << "texture " << hex << (triangle.texture->getColor(1, 1)) << dec << endl;
-
 	Vertex v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
 	if(v0.position.y > v1.position.y)
 		swap(v0, v1);
@@ -169,9 +148,9 @@ void Scene::drawTriangle(Triangle triangle){
 	if(v1.position.y > v2.position.y)
 		swap(v1, v2);
 
-	int dy01 = floor(v1.position.y-v0.position.y);
-	int dy02 = floor(v2.position.y-v0.position.y);
-	int dy12 = floor(v2.position.y-v1.position.y);
+	int dy01 = v1.position.y-v0.position.y;
+	int dy02 = v2.position.y-v0.position.y;
+	int dy12 = v2.position.y-v1.position.y;
 
 	forward_list<Vertex> l01 = lerp<Vertex>(0, v0, dy01, v1);
 	forward_list<Vertex> l02 = lerp<Vertex>(0, v0, dy02, v2);
@@ -246,12 +225,12 @@ void Scene::cull(Model &triangles){
 			int numCulled = 0;
 			for(int i = 0; i < 3; i++){
 				Point3D pos = t[i].position;
-				if(distanceToPlane(pos, *planeIt) < 0)
+				if(planeIt->distance(pos) < 0)
 					culled[numCulled++] = i;
 				else
 					culled[2-i+numCulled] = i;
 			}
-			cout << numCulled << endl;
+			cout << "culled " << numCulled << endl;
 
 			if(numCulled == 3){
 				*it = *triangles.begin();
@@ -260,9 +239,6 @@ void Scene::cull(Model &triangles){
 			else if(numCulled == 2){
 				it->points[culled[0]] = lerp<Vertex>(intersectionPercent(*planeIt, t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
 				it->points[culled[1]] = lerp<Vertex>(intersectionPercent(*planeIt, t[culled[1]].position, t[culled[2]].position), t[culled[1]], t[culled[2]]);
-
-				cout << (*it)[0].position.y << endl;
-				cout << (*it)[1].position.y << endl;
 			}
 			else if(numCulled == 1){
 				Triangle clipping(t);
@@ -274,9 +250,9 @@ void Scene::cull(Model &triangles){
 
 				triangles.insert_after(it, clipping);
 				it++;
-				cout << "successful" << endl;
 			}
 		}
+		cout << distance(triangles.begin(), triangles.end()) << endl;
 	}
 }
 
