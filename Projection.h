@@ -72,19 +72,24 @@ namespace asp{
 		}shading = Phong;
 	};
 
+	struct Camera{
+		priori::Point3D position;
+		priori::Vector3D rotation;
+	};
+
 	class Scene{
 		double** depthInverse;
-		priori::TransformationMatrix camera;
-		double focalLength;
-		std::forward_list<priori::Plane> cullingPlanes;
 
 		void drawTriangle(Triangle triangle);
-		Triangle project(Triangle &triangle);
+		void project(Triangle &triangle);
 		Model transformInstance(const Instance &instance);
 		void cull(Model &triangles);
-		void shadeVertices(Model &triangles);
+		void shadeVertices(Triangle &triangle);
 
 	public:
+		Camera camera;
+		double focalLength;
+		std::forward_list<priori::Plane> cullingPlanes;
 		priori::Image viewPort;
 		RenderSettings* settings;
 

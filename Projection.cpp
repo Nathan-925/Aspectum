@@ -81,7 +81,7 @@ Color Texture::getColor(double x, double y){
 
 Scene::Scene(int width, int height) :
 		depthInverse(new double*[width]),
-		camera(0, 0, focalLength),
+		camera{Point3D(0, 0, 0), Vector3D(0, 0, 0)},
 		viewPort(width, height),
 		settings(){
 	for(int i = 0; i < width; i++)
@@ -98,25 +98,19 @@ Scene::~Scene(){
 	delete[] depthInverse;
 }
 
-Triangle Scene::project(Triangle &triangle){
+void Scene::project(Triangle &triangle){
 	for(int i = 0; i < 3; i++){
-		cout << "(" << triangle[i].position.x << ", " << triangle[i].position.y << ", " << triangle[i].position.z << ")->";
 		triangle[i].position = Point3D((int)(viewPort.width/2+((triangle[i].position.x*focalLength)/triangle[i].position.z)),
-				   					   (int)(viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z)),
+									   (int)(viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z)),
 									   1/triangle[i].position.z);
 		triangle[i].texel *= triangle[i].position.z;
-		cout << "(" << triangle[i].position.x << ", " << triangle[i].position.y << ", " << triangle[i].position.z << ")" << endl;
 	}
-	return triangle;
 }
 
 void Scene::setFOV(double fov){
 	double xAngle = fov*(M_PI/360);
 	focalLength = (viewPort.width-1)/(2*tan(xAngle));
-	cout << "focal length " << focalLength << endl;
 	double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
-	cout << "xAngle " << xAngle << endl;
-	cout << "yAngle " << yAngle << endl;
 
 	double x = sin(xAngle), y = sin(yAngle);
 
@@ -155,7 +149,6 @@ void Scene::drawTriangle(Triangle triangle){
 	forward_list<Vertex> l01 = lerp<Vertex>(0, v0, dy01, v1);
 	forward_list<Vertex> l02 = lerp<Vertex>(0, v0, dy02, v2);
 	forward_list<Vertex> l12 = lerp<Vertex>(0, v1, dy12, v2);
-	l12.pop_front();
 
 	auto it01 = l01.begin();
 	auto it02 = l02.begin();
@@ -163,7 +156,7 @@ void Scene::drawTriangle(Triangle triangle){
 
 	for(int i = 0; i <= dy02; i++){
 		Vertex v1 = *it02++;
-		Vertex v2 = it01 != l01.end() ? *it01++ : *it12++;
+		Vertex v2 = i < dy01 ? *it01++ : *it12++;
 		if(v1.position.x > v2.position.x)
 			swap(v1, v2);
 
@@ -171,7 +164,10 @@ void Scene::drawTriangle(Triangle triangle){
 		int y = v0.position.y+i;
 		for(Vertex v: line){
 			int x = v.position.x;
-			cout << "xy " << x << " " << y << endl;
+
+			if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height)
+				cout << "out " << x << " " << y << endl;
+
 			if(v.position.z > depthInverse[x][y]){
 				depthInverse[x][y] = v.position.z;
 
@@ -193,15 +189,16 @@ void Scene::render(const Instance &inst){
 	cull(triangles);
 	cout << "culled" << endl;
 
-	cout << distance(triangles.begin(), triangles.end()) << endl;
-
-	shadeVertices(triangles);
+	for(Triangle &t: triangles)
+		shadeVertices(t);
 	cout << "shaded" << endl;
 
-	for(auto it = triangles.begin(); it != triangles.end(); it++){
-		project(*it);
-		drawTriangle(*it);
-	}
+	for(Triangle &t: triangles)
+		project(t);
+	cout << "projected" << endl;
+
+	for(Triangle &t: triangles)
+		drawTriangle(t);
 }
 
 Model Scene::transformInstance(const Instance &instance){
@@ -209,7 +206,13 @@ Model Scene::transformInstance(const Instance &instance){
 	for(auto it = instance.model->begin(); it != instance.model->end(); it++){
 		Triangle triangle(*it);
 		for(int i = 0; i < 3; i++)
-			triangle[i].position = instance.transform*camera*triangle[i].position;
+			triangle[i].position = instance.transform*
+								   translate(-camera.position.x, -camera.position.y, -camera.position.z)*
+								   rotateZ(camera.rotation.z)*
+								   rotateY(camera.rotation.y)*
+								   rotateX(camera.rotation.x)*
+								   translate(camera.position.x, camera.position.y, camera.position.z)*
+								   triangle[i].position;
 		triangles.push_front(triangle);
 	}
 	return triangles;
@@ -228,20 +231,19 @@ void Scene::cull(Model &triangles){
 				else
 					culled[2-i+numCulled] = i;
 			}
-			cout << "culled " << numCulled << endl;
 
 			if(numCulled == 3){
 				*it = *triangles.begin();
 				triangles.pop_front();
 			}
 			else if(numCulled == 2){
-				it->points[culled[0]] = lerp<Vertex>(intersectionPercent(*planeIt, t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
-				it->points[culled[1]] = lerp<Vertex>(intersectionPercent(*planeIt, t[culled[1]].position, t[culled[2]].position), t[culled[1]], t[culled[2]]);
+				it->points[culled[0]] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
+				it->points[culled[1]] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[1]].position, t[culled[2]].position), t[culled[1]], t[culled[2]]);
 			}
 			else if(numCulled == 1){
 				Triangle clipping(t);
-				clipping[0] = lerp<Vertex>(intersectionPercent(*planeIt, t[culled[0]].position, t[culled[1]].position), t[culled[0]], t[culled[1]]);
-				clipping[1] = lerp<Vertex>(intersectionPercent(*planeIt, t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
+				clipping[0] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[0]].position, t[culled[1]].position), t[culled[0]], t[culled[1]]);
+				clipping[1] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
 				clipping[2] = t[culled[1]];
 
 				it->points[culled[0]] = clipping[1];
@@ -250,16 +252,13 @@ void Scene::cull(Model &triangles){
 				it++;
 			}
 		}
-		cout << distance(triangles.begin(), triangles.end()) << endl;
 	}
 }
 
-void Scene::shadeVertices(Model &triangles){
-	for(auto it = triangles.begin(); it != triangles.end(); it++){
-		(*it)[0].shade = 0xFFFFFF;
-		(*it)[1].shade = 0xFFFFFF;
-		(*it)[2].shade = 0xFFFFFF;
-	}
+void Scene::shadeVertices(Triangle &triangle){
+	triangle[0].shade = 0xFFFFFF;
+	triangle[1].shade = 0xFFFFFF;
+	triangle[2].shade = 0xFFFFFF;
 }
 
 void Scene::clear(){

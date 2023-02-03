@@ -59,17 +59,27 @@ int main(){
 
 	Model model = getCube(&noeTexture);
 
-	Instance instance(&model);
-	instance.transform *= scale(50, 50, 50);
-	instance.transform *= rotateX(M_PI/3);
-	instance.transform *= rotateY(M_PI/8);
-	instance.transform *= translate(60, 0, 100);
+//	model.emplace_front();
+//	model.front().texture = &noeTexture;
+//	model.front()[0].position = Point3D(0, 0, 0);
+//	model.front()[1].position = Point3D(1, 0, 0);
+//	model.front()[2].position = Point3D(0, 1, 0);
+//
+//	model.front()[0].texel = Point(0, 0);
+//	model.front()[1].texel = Point(0, 1);
+//	model.front()[2].texel = Point(1, 0);
 
-	Scene scene(500, 500);
+	Instance instance(&model);
+	instance.transform *= scale(150, 150, 50);
+	instance.transform *= rotateX(M_PI/4);
+	instance.transform *= rotateY(M_PI/3);
+	instance.transform *= translate(30, 0, 100);
+
+	Scene scene(1000, 1000);
 
 	RenderSettings settings;
 	settings.textures = true;
-	settings.wireframe = true;
+	settings.wireframe = false;
 	scene.settings = &settings;
 
 	for(int i = 0; i < 4; i++){
