@@ -101,8 +101,8 @@ Scene::~Scene(){
 Triangle Scene::project(Triangle &triangle){
 	for(int i = 0; i < 3; i++){
 		cout << "(" << triangle[i].position.x << ", " << triangle[i].position.y << ", " << triangle[i].position.z << ")->";
-		triangle[i].position = Point3D(floor(viewPort.width/2+((triangle[i].position.x*focalLength)/triangle[i].position.z)),
-				   					   floor(viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z)),
+		triangle[i].position = Point3D((int)(viewPort.width/2+((triangle[i].position.x*focalLength)/triangle[i].position.z)),
+				   					   (int)(viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z)),
 									   1/triangle[i].position.z);
 		triangle[i].texel *= triangle[i].position.z;
 		cout << "(" << triangle[i].position.x << ", " << triangle[i].position.y << ", " << triangle[i].position.z << ")" << endl;
@@ -167,8 +167,6 @@ void Scene::drawTriangle(Triangle triangle){
 		if(v1.position.x > v2.position.x)
 			swap(v1, v2);
 
-		v1.position.x = floor(v1.position.x);
-		v2.position.x = floor(v2.position.x);
 		forward_list<Vertex> line = lerp<Vertex>(v1.position.x, v1, v2.position.x, v2);
 		int y = v0.position.y+i;
 		for(Vertex v: line){

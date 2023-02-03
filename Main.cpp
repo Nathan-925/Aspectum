@@ -57,34 +57,25 @@ int main(){
 	t2.points[1] = vertices[1];
 	t2.points[2] = vertices[2];
 
-	Model model;
-	model.emplace_front();
-	model.front().texture = &noeTexture;
-	model.front()[0].position = Point3D(0, 0, 0);
-	model.front()[1].position = Point3D(1, 0, 0);
-	model.front()[2].position = Point3D(0, 1, 0);
-
-	model.front()[0].texel = Point(0, 0);
-	model.front()[1].texel = Point(1, 0);
-	model.front()[2].texel = Point(0, 1);
+	Model model = getCube(&noeTexture);
 
 	Instance instance(&model);
-	instance.transform *= scale(150, 150, 50);
-	instance.transform *= translate(0, 0, 100);
+	instance.transform *= scale(50, 50, 50);
+	instance.transform *= rotateX(M_PI/3);
+	instance.transform *= rotateY(M_PI/8);
+	instance.transform *= translate(60, 0, 100);
 
-	Instance instance2(&model);
-	instance2.transform *= scale(-150, -150, 50);
-	instance2.transform *= translate(0, 0, 100);
-
-	Scene scene(99, 99);
+	Scene scene(500, 500);
 
 	RenderSettings settings;
 	settings.textures = true;
 	settings.wireframe = true;
 	scene.settings = &settings;
 
-	scene.render(instance);
-	scene.render(instance2);
+	for(int i = 0; i < 4; i++){
+		scene.render(instance);
+		instance.transform *= rotateZ(M_PI/2);
+	}
 	cout << "end render" << endl;
 
 	writebmp("test.bmp", scene.viewPort);
