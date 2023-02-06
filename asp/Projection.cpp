@@ -198,14 +198,15 @@ void Scene::render(const Model &model, priori::TransformationMatrix transform){
 
 Model Scene::transformModel(const Model &model, TransformationMatrix transform){
 	Model triangles;
+	TransformationMatrix cameraMatrix = rotateZ(camera.rz)*
+										rotateY(camera.ry)*
+										rotateX(camera.rx)*
+										translate(-camera.position.x, -camera.position.y, -camera.position.z);
+
 	for(auto it = model.begin(); it != model.end(); it++){
 		Triangle triangle(*it);
 		for(int i = 0; i < 3; i++){
-			TransformationMatrix transformation = transform*
-												  rotateZ(camera.rz)*
-												  rotateY(camera.ry)*
-												  rotateX(camera.rx)*
-												  translate(-camera.position.x, -camera.position.y, camera.position.z);
+			TransformationMatrix transformation = transform*cameraMatrix;
 			triangle[i].position = transformation*triangle[i].position;
 			triangle.normals[i] = transformation*triangle.normals[i];
 		}
@@ -270,19 +271,22 @@ void Scene::shadeVertices(Triangle &triangle){
 		triangle[2].shade = triangle[0].shade;
 	}
 	else if(settings->shading == settings->Gouraund){
-		triangle[0].shade = shade(triangle[0].position, triangle.normals[0]);
-		triangle[1].shade = shade(triangle[1].position, triangle.normals[1]);
-		triangle[2].shade = shade(triangle[2].position, triangle.normals[2]);
+		for(int i = 0; i < 3; i++)
+			triangle[i].shade = shade(triangle[i].position, triangle.normals[i]);
 	}
 	else if(settings->shading == settings->Phong){
-		triangle[0].shade = Color(triangle.normals[0].x*0xFF, triangle.normals[0].y*0xFF, triangle.normals[0].z*0xFF);
-		triangle[1].shade = Color(triangle.normals[1].x*0xFF, triangle.normals[1].y*0xFF, triangle.normals[1].z*0xFF);
-		triangle[2].shade = Color(triangle.normals[2].x*0xFF, triangle.normals[2].y*0xFF, triangle.normals[2].z*0xFF);
+		for(int i = 0; i < 3; i++)
+			triangle[i].shade = Color(triangle.normals[i].x*0xFF, triangle.normals[i].y*0xFF, triangle.normals[i].z*0xFF);
 	}
 }
 
 Color Scene::shade(Point3D point, Vector3D normal){
 	Color c = 0;
+	TransformationMatrix inverseCameraMatrix = translate(-camera.position.x, -camera.position.y, camera.position.z)*
+											   rotateX(camera.rx)*
+											   rotateY(camera.ry)*
+											   rotateZ(camera.rz);
+
 	for(LightSource* light: lights){
 
 
