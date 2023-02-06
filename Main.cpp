@@ -43,49 +43,38 @@ int main(){
 	vertices[3].position = Point3D(30, 30, 40);
 	vertices[3].texel = Point(1, 1);
 
-	Triangle t1, t2;
+	Model model;
 
-	t1.color = 0xFF0000;
-	t1.texture = &noeTexture;
-	t1.points[0] = vertices[0];
-	t1.points[1] = vertices[1];
-	t1.points[2] = vertices[2];
+	model.emplace_front();
+	model.front().texture = &noeTexture;
+	model.front()[0].position = Point3D(0, 0, 0);
+	model.front()[1].position = Point3D(1, 0, 0);
+	model.front()[2].position = Point3D(0, 1, 0);
+	model.front()[0].texel = Point(0, 1);
+	model.front()[1].texel = Point(1, 1);
+	model.front()[2].texel = Point(0, 0);
+	model.front().normals[0] = (model.front()[2].position-model.front()[1].position)^(model.front()[0].position-model.front()[1].position);
+	model.front().normals[1] = model.front().normals[0];
+	model.front().normals[2] = model.front().normals[0];
 
-	t2.color = 0xFF;
-	t2.texture = &noeTexture;
-	t2.points[0] = vertices[3];
-	t2.points[1] = vertices[1];
-	t2.points[2] = vertices[2];
-
-	Model model = getCube(&noeTexture);
-
-//	model.emplace_front();
-//	model.front().texture = &noeTexture;
-//	model.front()[0].position = Point3D(0, 0, 0);
-//	model.front()[1].position = Point3D(1, 0, 0);
-//	model.front()[2].position = Point3D(0, 1, 0);
-//
-//	model.front()[0].texel = Point(0, 0);
-//	model.front()[1].texel = Point(0, 1);
-//	model.front()[2].texel = Point(1, 0);
-
-	Instance instance(&model);
-	instance.transform *= scale(150, 150, 50);
-	instance.transform *= rotateX(M_PI/4);
-	instance.transform *= rotateY(M_PI/3);
-	instance.transform *= translate(30, 0, 100);
+	TransformationMatrix instance;
+	instance *= scale(50, 50, 50);
+	//instance.transform *= rotateY(M_PI);
+	instance *= translate(0, 0, 100);
 
 	Scene scene(1000, 1000);
+	scene.lights.push_front(new DirectionalLight(0xFFFFFF, 1, Vector3D(0, 0, 1)));
+
+	//scene.camera.position = Point3D(0, 0, 0);
+	//scene.camera.ry = -M_PI/2;
 
 	RenderSettings settings;
 	settings.textures = true;
 	settings.wireframe = false;
+	settings.shading = settings.Gouraund;
 	scene.settings = &settings;
 
-	for(int i = 0; i < 4; i++){
-		scene.render(instance);
-		instance.transform *= rotateZ(M_PI/2);
-	}
+	scene.render(model, instance);
 	cout << "end render" << endl;
 
 	writebmp("test.bmp", scene.viewPort);

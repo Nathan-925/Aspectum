@@ -81,9 +81,10 @@ Color Texture::getColor(double x, double y){
 
 Scene::Scene(int width, int height) :
 		depthInverse(new double*[width]),
-		camera{Point3D(0, 0, 0), Vector3D(0, 0, 0)},
+		camera{Point3D(0, 0, 0), 0, 0, 0},
 		viewPort(width, height),
-		settings(){
+		settings(),
+		lights(){
 	for(int i = 0; i < width; i++)
 		depthInverse[i] = new double[height];
 
@@ -108,18 +109,7 @@ void Scene::project(Triangle &triangle){
 }
 
 void Scene::setFOV(double fov){
-	double xAngle = fov*(M_PI/360);
-	focalLength = (viewPort.width-1)/(2*tan(xAngle));
-	double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
-
-	double x = sin(xAngle), y = sin(yAngle);
-
-	cullingPlanes.clear();
-	cullingPlanes.push_front(Plane(Vector3D(0, 0, 1), 0));
-	cullingPlanes.push_front(Plane(Vector3D(x, 0, cos(xAngle)), 0));
-	cullingPlanes.push_front(Plane(Vector3D(-x, 0, cos(xAngle)), 0));
-	cullingPlanes.push_front(Plane(Vector3D(0, y, cos(yAngle)), 0));
-	cullingPlanes.push_front(Plane(Vector3D(0, -y, cos(yAngle)), 0));
+	focalLength = (viewPort.width-1)/(2*tan(fov*(M_PI/360)));
 }
 
 void Scene::drawTriangle(Triangle triangle){
@@ -174,16 +164,21 @@ void Scene::drawTriangle(Triangle triangle){
 				Color base = settings->textures && triangle.texture != nullptr ?
 						triangle.texture->getColor(v.texel.x/depthInverse[x][y], v.texel.y/depthInverse[x][y]) :
 						triangle.color;
-				viewPort[x][y] = base*v.shade;
+
+				Color light = settings->shading == settings->Phong ?
+						shade(Point3D(x/(focalLength*v.position.z), y/(focalLength*v.position.z), 1/v.position.z), Vector3D(v.shade.r, v.shade.g, v.shade.b)) :
+						v.shade;
+
+				viewPort[x][y] = base*light;
 			}
 		}
 	}
 }
 
-void Scene::render(const Instance &inst){
+void Scene::render(const Model &model, priori::TransformationMatrix transform){
 	cout << "render" << endl;
 
-	Model triangles = transformInstance(inst);
+	Model triangles = transformModel(model, transform);
 	cout << "transformed" << endl;
 
 	cull(triangles);
@@ -201,64 +196,98 @@ void Scene::render(const Instance &inst){
 		drawTriangle(t);
 }
 
-Model Scene::transformInstance(const Instance &instance){
+Model Scene::transformModel(const Model &model, TransformationMatrix transform){
 	Model triangles;
-	for(auto it = instance.model->begin(); it != instance.model->end(); it++){
+	for(auto it = model.begin(); it != model.end(); it++){
 		Triangle triangle(*it);
-		for(int i = 0; i < 3; i++)
-			triangle[i].position = instance.transform*
-								   translate(-camera.position.x, -camera.position.y, -camera.position.z)*
-								   rotateZ(camera.rotation.z)*
-								   rotateY(camera.rotation.y)*
-								   rotateX(camera.rotation.x)*
-								   translate(camera.position.x, camera.position.y, camera.position.z)*
-								   triangle[i].position;
+		for(int i = 0; i < 3; i++){
+			TransformationMatrix transformation = transform*
+												  rotateZ(camera.rz)*
+												  rotateY(camera.ry)*
+												  rotateX(camera.rx)*
+												  translate(-camera.position.x, -camera.position.y, camera.position.z);
+			triangle[i].position = transformation*triangle[i].position;
+			triangle.normals[i] = transformation*triangle.normals[i];
+		}
 		triangles.push_front(triangle);
 	}
 	return triangles;
 }
 
 void Scene::cull(Model &triangles){
-	for(auto planeIt = cullingPlanes.begin(); planeIt != cullingPlanes.end(); planeIt++){
-		for(auto it = triangles.begin(); it != triangles.end(); it++){
+
+	double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
+	double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
+
+	double x = sin(xAngle), y = sin(yAngle);
+
+	Plane cullingPlanes[] = {Plane(Vector3D(0, 0, 1), -1),
+							 Plane(Vector3D(x, 0, cos(xAngle)), 0),
+							 Plane(Vector3D(-x, 0, cos(xAngle)), 0),
+							 Plane(Vector3D(0, y, cos(yAngle)), 0),
+							 Plane(Vector3D(0, -y, cos(yAngle)), 0)};
+
+	for(Plane plane: cullingPlanes){
+		auto prev = triangles.before_begin();
+		for(auto it = triangles.begin(); it != triangles.end(); prev = it++){
 			Triangle t = *it;
 			int culled[3];
 			int numCulled = 0;
 			for(int i = 0; i < 3; i++){
 				Point3D pos = t[i].position;
-				if(planeIt->distance(pos) < 0)
+				if(plane.distance(pos) < 0)
 					culled[numCulled++] = i;
 				else
 					culled[2-i+numCulled] = i;
 			}
 
 			if(numCulled == 3){
-				*it = *triangles.begin();
-				triangles.pop_front();
+				triangles.erase_after(prev);
+				it = prev;
 			}
 			else if(numCulled == 2){
-				it->points[culled[0]] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
-				it->points[culled[1]] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[1]].position, t[culled[2]].position), t[culled[1]], t[culled[2]]);
+				it->points[culled[0]] = lerp<Vertex>(plane.intersectionPercent(t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
+				it->points[culled[1]] = lerp<Vertex>(plane.intersectionPercent(t[culled[1]].position, t[culled[2]].position), t[culled[1]], t[culled[2]]);
 			}
 			else if(numCulled == 1){
 				Triangle clipping(t);
-				clipping[0] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[0]].position, t[culled[1]].position), t[culled[0]], t[culled[1]]);
-				clipping[1] = lerp<Vertex>(planeIt->intersectionPercent(*planeIt, t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
+				clipping[0] = lerp<Vertex>(plane.intersectionPercent(t[culled[0]].position, t[culled[1]].position), t[culled[0]], t[culled[1]]);
+				clipping[1] = lerp<Vertex>(plane.intersectionPercent(t[culled[0]].position, t[culled[2]].position), t[culled[0]], t[culled[2]]);
 				clipping[2] = t[culled[1]];
 
 				it->points[culled[0]] = clipping[1];
 
-				triangles.insert_after(it, clipping);
-				it++;
+				triangles.insert_after(prev, clipping);
 			}
 		}
 	}
 }
 
 void Scene::shadeVertices(Triangle &triangle){
-	triangle[0].shade = 0xFFFFFF;
-	triangle[1].shade = 0xFFFFFF;
-	triangle[2].shade = 0xFFFFFF;
+	if(settings->shading == settings->Flat){
+		triangle[0].shade = shade(triangle[0].position, triangle.normals[0]);
+		triangle[1].shade = triangle[0].shade;
+		triangle[2].shade = triangle[0].shade;
+	}
+	else if(settings->shading == settings->Gouraund){
+		triangle[0].shade = shade(triangle[0].position, triangle.normals[0]);
+		triangle[1].shade = shade(triangle[1].position, triangle.normals[1]);
+		triangle[2].shade = shade(triangle[2].position, triangle.normals[2]);
+	}
+	else if(settings->shading == settings->Phong){
+		triangle[0].shade = Color(triangle.normals[0].x*0xFF, triangle.normals[0].y*0xFF, triangle.normals[0].z*0xFF);
+		triangle[1].shade = Color(triangle.normals[1].x*0xFF, triangle.normals[1].y*0xFF, triangle.normals[1].z*0xFF);
+		triangle[2].shade = Color(triangle.normals[2].x*0xFF, triangle.normals[2].y*0xFF, triangle.normals[2].z*0xFF);
+	}
+}
+
+Color Scene::shade(Point3D point, Vector3D normal){
+	Color c = 0;
+	for(LightSource* light: lights){
+
+
+	}
+	return c;
 }
 
 void Scene::clear(){

@@ -12,6 +12,8 @@
 #include <cmath>
 #include <forward_list>
 
+#include "LightSource.h"
+
 #include "priori/Math3D.h"
 #include "priori/Math.h"
 #include "priori/Graphical.h"
@@ -22,8 +24,8 @@ namespace asp{
 
 	struct Vertex{
 		priori::Point3D position;
-		priori::Color shade;
 		priori::Point texel;
+		priori::Color shade;
 
 		Vertex operator+(const Vertex &other);
 		Vertex operator-(const Vertex &other);
@@ -57,13 +59,6 @@ namespace asp{
 		priori::Color getColor(double x, double y);
 	};
 
-	struct Instance{
-		Model* const model;
-		priori::TransformationMatrix transform;
-
-		Instance(Model* m) : model(m) {};
-	};
-
 	struct RenderSettings{
 		bool wireframe = false;
 		bool textures = true;
@@ -74,7 +69,7 @@ namespace asp{
 
 	struct Camera{
 		priori::Point3D position;
-		priori::Vector3D rotation;
+		double rx, ry, rz;
 	};
 
 	class Scene{
@@ -82,22 +77,23 @@ namespace asp{
 
 		void drawTriangle(Triangle triangle);
 		void project(Triangle &triangle);
-		Model transformInstance(const Instance &instance);
+		Model transformModel(const Model &model, priori::TransformationMatrix transform);
 		void cull(Model &triangles);
 		void shadeVertices(Triangle &triangle);
+		priori::Color shade(priori::Point3D point, priori::Vector3D normal);
 
 	public:
 		Camera camera;
 		double focalLength;
-		std::forward_list<priori::Plane> cullingPlanes;
 		priori::Image viewPort;
 		RenderSettings* settings;
+		std::forward_list<LightSource*> lights;
 
 		Scene(int width, int height);
 		~Scene();
 
 		void setFOV(double fov);
-		void render(const asp::Instance &inst);
+		void render(const Model &model, priori::TransformationMatrix transform);
 		void clear();
 	};
 }
