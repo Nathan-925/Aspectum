@@ -20,6 +20,8 @@ using namespace asp;
 
 int main(){
 
+
+
 	Image tex(256, 256);
 	for(int i = 0; i < 256; i++)
 		for(int j = 0; j < 256; j++)
