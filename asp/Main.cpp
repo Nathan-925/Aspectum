@@ -53,24 +53,25 @@ int main(){
 	vertices[3].position = Point3D(30, 30, 40);
 	vertices[3].texel = Point(1, 1);
 
-	Model model;
+	Model model = readobj("untitled.obj");
 
-	model.emplace_front();
-	model.front().texture = &noeTexture;
-	model.front()[0].position = Point3D(0, 0, 0);
-	model.front()[1].position = Point3D(1, 0, 0);
-	model.front()[2].position = Point3D(0, 1, 0);
-	model.front()[0].texel = Point(0, 1);
-	model.front()[1].texel = Point(1, 1);
-	model.front()[2].texel = Point(0, 0);
-	model.front().normals[0] = (model.front()[2].position-model.front()[1].position)^(model.front()[0].position-model.front()[1].position);
-	model.front().normals[1] = model.front().normals[0];
-	model.front().normals[2] = model.front().normals[0];
+	//model.emplace_front();
+	//model.front().texture = &noeTexture;
+	//model.front()[0].position = Point3D(0, 0, 0);
+	//model.front()[1].position = Point3D(1, 0, 0);
+	//model.front()[2].position = Point3D(0, 1, 0);
+	//model.front()[0].texel = Point(0, 1);
+	//model.front()[1].texel = Point(1, 1);
+	//model.front()[2].texel = Point(0, 0);
+	//model.front().normals[0] = (model.front()[2].position-model.front()[1].position)^(model.front()[0].position-model.front()[1].position);
+	//model.front().normals[1] = model.front().normals[0];
+	//model.front().normals[2] = model.front().normals[0];
 
 	TransformationMatrix instance;
-	instance *= scale(50, 50, 50);
-	//instance.transform *= rotateY(M_PI);
-	instance *= translate(0, 0, 100);
+	instance *= scale(30, 30, 30);
+	//instance *= rotateX(M_PI/3);
+	instance *= rotateY(M_PI/8);
+	instance *= translate(0, -2500, 5000);
 
 	Scene scene(1000, 1000);
 	scene.lights.push_front(new DirectionalLight(0xFFFFFF, 1, Vector3D(0, 0, 1)));
@@ -80,8 +81,8 @@ int main(){
 
 	RenderSettings settings;
 	settings.textures = true;
-	settings.wireframe = false;
-	settings.shading = settings.Gouraund;
+	settings.wireframe = true;
+	settings.shadingMode = settings.Gouraund;
 	scene.settings = &settings;
 
 	scene.render(model, instance);

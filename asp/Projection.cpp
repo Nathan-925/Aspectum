@@ -114,13 +114,9 @@ void Scene::setFOV(double fov){
 
 void Scene::drawTriangle(Triangle triangle){
 	if(settings->wireframe){
-		cout << "wireframe" << endl;
 		priori::drawTriangle(viewPort, triangle.color, Point(triangle[0].position.x, triangle[0].position.y),
 											  	  	   Point(triangle[1].position.x, triangle[1].position.y),
 											  	  	   Point(triangle[2].position.x, triangle[2].position.y));
-		viewPort[(int)triangle[0].position.x][(int)triangle[0].position.y] = 0xFF0000;
-		viewPort[(int)triangle[1].position.x][(int)triangle[1].position.y] = 0xFF0000;
-		viewPort[(int)triangle[2].position.x][(int)triangle[2].position.y] = 0xFF0000;
 		return;
 	}
 
@@ -165,7 +161,7 @@ void Scene::drawTriangle(Triangle triangle){
 						triangle.texture->getColor(v.texel.x/depthInverse[x][y], v.texel.y/depthInverse[x][y]) :
 						triangle.color;
 
-				Color light = settings->shading == settings->Phong ?
+				Color light = settings->shadingMode == settings->Phong ?
 						shade(Point3D(x/(focalLength*v.position.z), y/(focalLength*v.position.z), 1/v.position.z), Vector3D(v.shade.r, v.shade.g, v.shade.b)) :
 						v.shade;
 
@@ -265,16 +261,16 @@ void Scene::cull(Model &triangles){
 }
 
 void Scene::shadeVertices(Triangle &triangle){
-	if(settings->shading == settings->Flat){
+	if(settings->shadingMode == settings->Flat){
 		triangle[0].shade = shade(triangle[0].position, triangle.normals[0]);
 		triangle[1].shade = triangle[0].shade;
 		triangle[2].shade = triangle[0].shade;
 	}
-	else if(settings->shading == settings->Gouraund){
+	else if(settings->shadingMode == settings->Gouraund){
 		for(int i = 0; i < 3; i++)
 			triangle[i].shade = shade(triangle[i].position, triangle.normals[i]);
 	}
-	else if(settings->shading == settings->Phong){
+	else if(settings->shadingMode == settings->Phong){
 		for(int i = 0; i < 3; i++)
 			triangle[i].shade = Color(triangle.normals[i].x*0xFF, triangle.normals[i].y*0xFF, triangle.normals[i].z*0xFF);
 	}

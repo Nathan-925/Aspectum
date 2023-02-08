@@ -30,19 +30,16 @@ namespace asp{
 			file >> command;
 
 			if(command.compare("v") == 0){
-				double x, y, z;
-				file >> x >> y >> z;
-				points.emplace_back(x, y, z);
+				points.emplace_back();
+				file >> points.back().x >> points.back().y >> points.back().z;
 			}
 			else if(command.compare("vt") == 0){
-				double x, y;
-				file >> x >> y;
-				texels.emplace_back(x, y);
+				texels.emplace_back();
+				file >> texels.back().x >> texels.back().y;
 			}
 			else if(command.compare("vn") == 0){
-				double x, y, z;
-				file >> x >> y >> z;
-				normals.emplace_back(x, y, z);
+				normals.emplace_back();
+				file >> normals.back().x >> normals.back().y >> normals.back().z;
 			}
 			else if(command[0] == 'f'){
 				model.emplace_front();

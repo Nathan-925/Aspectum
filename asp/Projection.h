@@ -40,11 +40,20 @@ namespace asp{
 		Vertex operator/=(const double &d);
 	};
 
+	struct Material{
+		priori::Color ambient, diffuse, specular;
+		Texture* ambientTexture = nullptr;
+		Texture* diffuseTexture = nullptr;
+		Texture* specularTexture = nullptr;
+		double alpha;
+		double shine;
+		int illuminationModel;
+	};
+
 	struct Triangle{
 		Vertex points[3];
 		priori::Vector3D normals[3];
-		Texture* texture;
-		priori::Color color;
+		Material* material = nullptr;
 
 		Vertex& operator[](const int &n);
 	};
@@ -62,9 +71,10 @@ namespace asp{
 	struct RenderSettings{
 		bool wireframe = false;
 		bool textures = true;
+		bool shading = true;
 		enum{
 			Flat, Gouraund, Phong
-		}shading = Phong;
+		}shadingMode = Phong;
 	};
 
 	struct Camera{
