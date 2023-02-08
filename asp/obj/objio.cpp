@@ -6,6 +6,7 @@
  */
 #include <fstream>
 #include <vector>
+#include <iostream>
 
 #include "objio.h"
 
@@ -14,13 +15,6 @@
 
 using namespace std;
 using namespace priori;
-
-template<class T>
-T& getAbsolutePosition(vector<T> vector, int n){
-	if(n < 0)
-		return vector[vector.size()+n];
-	return vector[n-1];
-}
 
 namespace asp{
 
@@ -35,44 +29,52 @@ namespace asp{
 			string command;
 			file >> command;
 
-			if(command[0] == 'v'){
+			if(command.compare("v") == 0){
 				double x, y, z;
-				file >> x;
-				if(file.peek() == '\n'){
-					y = 0;
-					z = 0;
-				}
-				else{
-					file >> y;
-					if(file.peek() == '\n')
-						z = 0;
-					else
-						file >> z;
-				}
-				if(command[1] == 't')
-					texels.emplace_back(x, y);
-				else if(command[1] == 'n')
-					normals.emplace_back(x, y, z);
-				else
-					points.emplace_back(x, y, z);
+				file >> x >> y >> z;
+				points.emplace_back(x, y, z);
+			}
+			else if(command.compare("vt") == 0){
+				double x, y;
+				file >> x >> y;
+				texels.emplace_back(x, y);
+			}
+			else if(command.compare("vn") == 0){
+				double x, y, z;
+				file >> x >> y >> z;
+				normals.emplace_back(x, y, z);
 			}
 			else if(command[0] == 'f'){
 				model.emplace_front();
-				int indexes[3][3];
+				int normalIndexes[3];
 				for(int i = 0; i < 3; i++){
 					string s;
 					file >> s;
-					int s1 = s.find('/'), s2 = s.rfind('/');
-					model.front()[0].position = stoi(s.substr(0, s1))-1;
-					if(s1 != s.npos && s2 > s1+1)
-						model.front()[0].texel = stoi(s.substr(s1+1, s2));
-					indexes[i][2] = s2 < s.npos-1 ? stoi(s.substr(s2+1)) : 0;
+					uint s1 = s.find('/'), s2 = s.rfind('/');
+					cout << s1 << " " << s2 << " " << s.npos << endl;
+
+					int pIndex = stoi(s.substr(0, s1));
+					model.front()[i].position = points[pIndex > 0 ? pIndex-1 : points.size()+pIndex];
+
+					if(s1 < s.length()-1 && s2 > s1+1){
+						int tIndex = stoi(s.substr(s1+1, s2));
+						model.front()[i].texel = texels[tIndex > 0 ? tIndex-1 : texels.size()+tIndex];
+					}
+
+					normalIndexes[i] = s2 < s.length()-1 ? stoi(s.substr(s2+1)) : 0;
 				}
 
+				for(int i = 0; i < 3; i++)
+					model.front().normals[i] = normalIndexes[i] == 0 ?
+							(model.front()[0].position-model.front()[1].position)^(model.front()[2].position-model.front()[1].position) :
+							normals[normalIndexes[i] > 0 ? normalIndexes[i]-1 : normals.size()+normalIndexes[i]];
 
 			}
 			file.ignore(numeric_limits<streamsize>::max(), '\n');
 		}
+
+		file.close();
+		return model;
 	}
 
 }

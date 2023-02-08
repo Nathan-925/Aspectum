@@ -10,6 +10,7 @@
 
 #include "Projection.h"
 #include "Shapes.h"
+#include "obj/objio.h"
 
 #include "priori/BMPLibrary.h"
 #include "priori/Math3D.h"
@@ -20,7 +21,14 @@ using namespace asp;
 
 int main(){
 
-
+	Model testModel = readobj("test.obj");
+	for(Triangle t: testModel){
+		for(int i = 0; i < 3; i++){
+			cout << "position " << t[i].position.x << " " << t[i].position.y << " " << t[i].position.z << endl;
+			cout << "texel " << t[i].texel.x << " " << t[i].texel.y << endl;
+			cout << "normal " << t.normals[i].x << " " << t.normals[i].y << " " << t.normals[i].z << endl;
+		}
+	}
 
 	Image tex(256, 256);
 	for(int i = 0; i < 256; i++)
