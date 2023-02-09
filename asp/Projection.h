@@ -11,8 +11,9 @@
 #include <cstdint>
 #include <cmath>
 #include <forward_list>
+#include <vector>
 
-#include "LightSource.h"
+#include "Lights.h"
 
 #include "priori/Math3D.h"
 #include "priori/Math.h"
@@ -25,19 +26,26 @@ namespace asp{
 	struct Vertex{
 		priori::Point3D position;
 		priori::Point texel;
-		priori::Color shade;
+		priori::Vector3D normal;
 
-		Vertex operator+(const Vertex &other);
-		Vertex operator-(const Vertex &other);
+		Vertex operator+(const Vertex &other) const;
+		Vertex operator-(const Vertex &other) const;
 
 		Vertex operator+=(const Vertex &other);
 		Vertex operator-=(const Vertex &other);
 
-		Vertex operator*(const double &d);
-		Vertex operator/(const double &d);
+		Vertex operator*(const double &d) const;
+		Vertex operator/(const double &d) const;
 
 		Vertex operator*=(const double &d);
 		Vertex operator/=(const double &d);
+	};
+
+	struct Fragment{
+		int x, y;
+		double depth;
+		priori::Color color;
+		priori::Point texel;
 	};
 
 	struct Material{
@@ -52,11 +60,12 @@ namespace asp{
 
 	struct Triangle{
 		Vertex points[3];
-		priori::Vector3D normals[3];
 		Material* material = nullptr;
 
 		Vertex& operator[](const int &n);
 	};
+
+	Triangle operator*(const priori::TransformationMatrix &transform, const Triangle &triangle);
 
 	typedef std::forward_list<Triangle> Model;
 
@@ -72,38 +81,45 @@ namespace asp{
 		bool wireframe = false;
 		bool textures = true;
 		bool shading = true;
-		enum{
-			Flat, Gouraund, Phong
-		}shadingMode = Phong;
+		bool specular = true;
 	};
 
-	struct Camera{
-		priori::Point3D position;
-		double rx, ry, rz;
+	struct Instance{
+		Model* model;
+		priori::TransformationMatrix transform;
+
+		Instance(Model* m);
+		Instance(Model* m, priori::TransformationMatrix t);
 	};
 
-	class Scene{
+	Instance operator*(const priori::TransformationMatrix &transform, const Instance &instance);
+	Instance operator*=(Instance &instance, const priori::TransformationMatrix &transform);
+
+	struct Scene{
+		std::vector<Instance*> objects;
+		AmbientLight ambientLight;
+		std::vector<DirectionalLight*> directionalLights;
+		std::vector<PointLight*> pointLights;
+	};
+
+	class Camera{
 		double** depthInverse;
 
-		void drawTriangle(Triangle triangle);
 		void project(Triangle &triangle);
-		Model transformModel(const Model &model, priori::TransformationMatrix transform);
-		void cull(Model &triangles);
-		void shadeVertices(Triangle &triangle);
-		priori::Color shade(priori::Point3D point, priori::Vector3D normal);
+		priori::Color shade(priori::Point3D point, priori::Vector3D normal, Material* material);
 
 	public:
-		Camera camera;
 		double focalLength;
 		priori::Image viewPort;
 		RenderSettings* settings;
-		std::forward_list<LightSource*> lights;
+		priori::Point3D position;
+		double rx, ry, rz;
 
-		Scene(int width, int height);
-		~Scene();
+		Camera(int width, int height);
+		~Camera();
 
 		void setFOV(double fov);
-		void render(const Model &model, priori::TransformationMatrix transform);
+		void render(const Scene &scene);
 		void clear();
 	};
 }

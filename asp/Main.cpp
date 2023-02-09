@@ -67,27 +67,28 @@ int main(){
 	//model.front().normals[1] = model.front().normals[0];
 	//model.front().normals[2] = model.front().normals[0];
 
-	TransformationMatrix instance;
-	instance *= scale(30, 30, 30);
-	//instance *= rotateX(M_PI/3);
-	instance *= rotateY(M_PI/8);
-	instance *= translate(0, -2500, 5000);
+	Scene scene;
+	Instance i(&model);
+	i *= scale(30, 30, 30);
+	//i *= rotateX(M_PI/3);
+	i *= rotateY(M_PI/8);
+	i *= translate(0, -2500, 5000);
+	scene.objects.push_back(&i);
 
-	Scene scene(1000, 1000);
-	scene.lights.push_front(new DirectionalLight(0xFFFFFF, 1, Vector3D(0, 0, 1)));
+	Camera camera(1000, 1000);
 
-	//scene.camera.position = Point3D(0, 0, 0);
-	//scene.camera.ry = -M_PI/2;
+	//camera.camera.position = Point3D(0, 0, 0);
+	//camera.camera.ry = -M_PI/2;
 
 	RenderSettings settings;
 	settings.textures = true;
 	settings.wireframe = true;
 	settings.shadingMode = settings.Gouraund;
-	scene.settings = &settings;
+	camera.settings = &settings;
 
-	scene.render(model, instance);
+	camera.render(scene);
 	cout << "end render" << endl;
 
-	writebmp("test.bmp", scene.viewPort);
+	writebmp("test.bmp", camera.viewPort);
 	cout << "end program" << endl;
 }

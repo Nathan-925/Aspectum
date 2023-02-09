@@ -19,19 +19,19 @@ using namespace std;
 using namespace priori;
 using namespace asp;
 
-Vertex Vertex::operator+(const Vertex &other){
+Vertex Vertex::operator+(const Vertex &other) const{
 	Vertex out(*this);
-	out.shade += other.shade;
 	out.position += other.position;
 	out.texel += other.texel;
+	out.normal += other.normal;
 	return out;
 }
 
-Vertex Vertex::operator-(const Vertex &other){
+Vertex Vertex::operator-(const Vertex &other) const{
 	Vertex out(*this);
-	out.shade -= other.shade;
 	out.position -= other.position;
 	out.texel -= other.texel;
+	out.normal -= other.normal;
 	return out;
 }
 
@@ -45,19 +45,19 @@ Vertex Vertex::operator-=(const Vertex &other){
 	return *this;
 }
 
-Vertex Vertex::operator*(const double &d){
+Vertex Vertex::operator*(const double &d) const{
 	Vertex out(*this);
-	out.shade *= d;
 	out.position *= d;
 	out.texel *= d;
+	out.normal *= d;
 	return out;
 }
 
-Vertex Vertex::operator/(const double &d){
+Vertex Vertex::operator/(const double &d) const{
 	Vertex out(*this);
-	out.shade /= d;
 	out.position /= d;
 	out.texel /= d;
+	out.normal /= d;
 	return out;
 }
 
@@ -75,16 +75,39 @@ Vertex& Triangle::operator[](const int &n){
 	return points[n];
 }
 
+Triangle operator*(const priori::TransformationMatrix &transform, const Triangle &triangle){
+	Triangle out;
+	for(int i = 0; i < 3; i++){
+		out[i].position = transform*triangle.points[i].position;
+		out[i].normal = transform*triangle.points[i].normal;
+	}
+	return out;
+}
+
 Color Texture::getColor(double x, double y){
 	return image.pixels[(int)round(x*(image.width-1))][(int)round(y*(image.height-1))];
 }
 
-Scene::Scene(int width, int height) :
+Instance::Instance(Model* m) : model(m), transform() {};
+
+Instance::Instance(Model* m, TransformationMatrix t) : model(m), transform(t) {};
+
+Instance operator*(const TransformationMatrix &transform, const Instance &instance){
+	Instance out(instance.model, transform*instance.transform);
+	return out;
+}
+
+Instance operator*=(Instance &instance, const TransformationMatrix &transform){
+	instance.transform *= transform;
+	return instance;
+}
+
+Camera::Camera(int width, int height) :
 		depthInverse(new double*[width]),
-		camera{Point3D(0, 0, 0), 0, 0, 0},
 		viewPort(width, height),
 		settings(),
-		lights(){
+		position(0, 0, 0),
+		rx(0), ry(0), rz(0){
 	for(int i = 0; i < width; i++)
 		depthInverse[i] = new double[height];
 
@@ -93,13 +116,13 @@ Scene::Scene(int width, int height) :
 	setFOV(90);
 };
 
-Scene::~Scene(){
+Camera::~Camera(){
 	for(int i = 0; i < viewPort.width; i++)
 		delete[] depthInverse[i];
 	delete[] depthInverse;
 }
 
-void Scene::project(Triangle &triangle){
+void Camera::project(Triangle &triangle){
 	for(int i = 0; i < 3; i++){
 		triangle[i].position = Point3D((int)(viewPort.width/2+((triangle[i].position.x*focalLength)/triangle[i].position.z)),
 									   (int)(viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z)),
@@ -108,111 +131,29 @@ void Scene::project(Triangle &triangle){
 	}
 }
 
-void Scene::setFOV(double fov){
+void Camera::setFOV(double fov){
 	focalLength = (viewPort.width-1)/(2*tan(fov*(M_PI/360)));
 }
 
-void Scene::drawTriangle(Triangle triangle){
-	if(settings->wireframe){
-		priori::drawTriangle(viewPort, triangle.color, Point(triangle[0].position.x, triangle[0].position.y),
-											  	  	   Point(triangle[1].position.x, triangle[1].position.y),
-											  	  	   Point(triangle[2].position.x, triangle[2].position.y));
-		return;
-	}
-
-	Vertex v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
-	if(v0.position.y > v1.position.y)
-		swap(v0, v1);
-	if(v0.position.y > v2.position.y)
-		swap(v0, v2);
-	if(v1.position.y > v2.position.y)
-		swap(v1, v2);
-
-	int dy01 = v1.position.y-v0.position.y;
-	int dy02 = v2.position.y-v0.position.y;
-	int dy12 = v2.position.y-v1.position.y;
-
-	forward_list<Vertex> l01 = lerp<Vertex>(0, v0, dy01, v1);
-	forward_list<Vertex> l02 = lerp<Vertex>(0, v0, dy02, v2);
-	forward_list<Vertex> l12 = lerp<Vertex>(0, v1, dy12, v2);
-
-	auto it01 = l01.begin();
-	auto it02 = l02.begin();
-	auto it12 = l12.begin();
-
-	for(int i = 0; i <= dy02; i++){
-		Vertex v1 = *it02++;
-		Vertex v2 = i < dy01 ? *it01++ : *it12++;
-		if(v1.position.x > v2.position.x)
-			swap(v1, v2);
-
-		forward_list<Vertex> line = lerp<Vertex>(v1.position.x, v1, v2.position.x, v2);
-		int y = v0.position.y+i;
-		for(Vertex v: line){
-			int x = v.position.x;
-
-			if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height)
-				cout << "out " << x << " " << y << endl;
-
-			if(v.position.z > depthInverse[x][y]){
-				depthInverse[x][y] = v.position.z;
-
-				Color base = settings->textures && triangle.texture != nullptr ?
-						triangle.texture->getColor(v.texel.x/depthInverse[x][y], v.texel.y/depthInverse[x][y]) :
-						triangle.color;
-
-				Color light = settings->shadingMode == settings->Phong ?
-						shade(Point3D(x/(focalLength*v.position.z), y/(focalLength*v.position.z), 1/v.position.z), Vector3D(v.shade.r, v.shade.g, v.shade.b)) :
-						v.shade;
-
-				viewPort[x][y] = base*light;
-			}
-		}
-	}
-}
-
-void Scene::render(const Model &model, priori::TransformationMatrix transform){
+void Camera::render(const Scene &scene){
 	cout << "render" << endl;
 
-	Model triangles = transformModel(model, transform);
+	//instance transformation
+	Model triangles;
+	for(Instance* i: scene.objects)
+		for(Triangle t: i->model)
+			triangles.push_front(i->transform*t);
+
+	//camera space transformation
+	for(Triangle &t: triangles)
+		t = rotateZ(rz)*
+			rotateY(ry)*
+			rotateX(rx)*
+			translate(-position.x, -position.y, -position.z)*
+			t;
 	cout << "transformed" << endl;
 
-	cull(triangles);
-	cout << "culled" << endl;
-
-	for(Triangle &t: triangles)
-		shadeVertices(t);
-	cout << "shaded" << endl;
-
-	for(Triangle &t: triangles)
-		project(t);
-	cout << "projected" << endl;
-
-	for(Triangle &t: triangles)
-		drawTriangle(t);
-}
-
-Model Scene::transformModel(const Model &model, TransformationMatrix transform){
-	Model triangles;
-	TransformationMatrix cameraMatrix = rotateZ(camera.rz)*
-										rotateY(camera.ry)*
-										rotateX(camera.rx)*
-										translate(-camera.position.x, -camera.position.y, -camera.position.z);
-
-	for(auto it = model.begin(); it != model.end(); it++){
-		Triangle triangle(*it);
-		for(int i = 0; i < 3; i++){
-			TransformationMatrix transformation = transform*cameraMatrix;
-			triangle[i].position = transformation*triangle[i].position;
-			triangle.normals[i] = transformation*triangle.normals[i];
-		}
-		triangles.push_front(triangle);
-	}
-	return triangles;
-}
-
-void Scene::cull(Model &triangles){
-
+	//culling
 	double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
 	double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
 
@@ -258,39 +199,87 @@ void Scene::cull(Model &triangles){
 			}
 		}
 	}
+	cout << "culled" << endl;
+
+	for(Triangle &t: triangles)
+		project(t);
+	cout << "projected" << endl;
+
+	if(settings->wireframe)
+		for(Triangle &triangle: triangles)
+			priori::drawTriangle(viewPort, triangle.material->ambient, Point(triangle[0].position.x, triangle[0].position.y),
+																	   Point(triangle[1].position.x, triangle[1].position.y),
+																	   Point(triangle[2].position.x, triangle[2].position.y));
+	else
+		for(Triangle &triangle: triangles){
+			Vertex v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
+			if(v0.position.y > v1.position.y)
+				swap(v0, v1);
+			if(v0.position.y > v2.position.y)
+				swap(v0, v2);
+			if(v1.position.y > v2.position.y)
+				swap(v1, v2);
+
+			int dy01 = v1.position.y-v0.position.y;
+			int dy02 = v2.position.y-v0.position.y;
+			int dy12 = v2.position.y-v1.position.y;
+
+			forward_list<Vertex> l01 = lerp<Vertex>(0, v0, dy01, v1);
+			forward_list<Vertex> l02 = lerp<Vertex>(0, v0, dy02, v2);
+			forward_list<Vertex> l12 = lerp<Vertex>(0, v1, dy12, v2);
+
+			auto it01 = l01.begin();
+			auto it02 = l02.begin();
+			auto it12 = l12.begin();
+
+			for(int i = 0; i <= dy02; i++){
+				Vertex v1 = *it02++;
+				Vertex v2 = i < dy01 ? *it01++ : *it12++;
+				if(v1.position.x > v2.position.x)
+					swap(v1, v2);
+
+				forward_list<Vertex> line = lerp<Vertex>(v1.position.x, v1, v2.position.x, v2);
+				int y = v0.position.y+i;
+				for(Vertex v: line){
+					int x = v.position.x;
+
+					if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height)
+						cout << "out " << x << " " << y << endl;
+
+					if(v.position.z > depthInverse[x][y]){
+						depthInverse[x][y] = v.position.z;
+
+						Color ambient = triangle.material->ambient,
+							  diffuse = triangle.material->diffuse,
+							  specular = triangle.material->specular;
+						if(settings->textures){
+							if(triangle.material->ambientTexture != nullptr)
+								ambient *= triangle.material->ambientTexture->getColor(v.texel.x, v.texel.y);
+							if(triangle.material->diffuseTexture != nullptr)
+								diffuse *= triangle.material->diffuseTexture->getColor(v.texel.x, v.texel.y);
+							if(triangle.material->specularTexture != nullptr)
+								specular *= triangle.material->specularTexture->getColor(v.texel.x, v.texel.y);
+						}
+
+						if(settings->shading && triangle.material->illuminationModel != 0){
+							Color c = ambient*scene.ambientLight;
+
+						}
+						else
+							viewPort[x][y] = triangle.material->diffuse;
+					}
+				}
+			}
+		}
 }
 
-void Scene::shadeVertices(Triangle &triangle){
-	if(settings->shadingMode == settings->Flat){
-		triangle[0].shade = shade(triangle[0].position, triangle.normals[0]);
-		triangle[1].shade = triangle[0].shade;
-		triangle[2].shade = triangle[0].shade;
-	}
-	else if(settings->shadingMode == settings->Gouraund){
-		for(int i = 0; i < 3; i++)
-			triangle[i].shade = shade(triangle[i].position, triangle.normals[i]);
-	}
-	else if(settings->shadingMode == settings->Phong){
-		for(int i = 0; i < 3; i++)
-			triangle[i].shade = Color(triangle.normals[i].x*0xFF, triangle.normals[i].y*0xFF, triangle.normals[i].z*0xFF);
-	}
-}
-
-Color Scene::shade(Point3D point, Vector3D normal){
+Color Camera::shade(Point3D point, Vector3D normal, Material* material){
 	Color c = 0;
-	TransformationMatrix inverseCameraMatrix = translate(-camera.position.x, -camera.position.y, camera.position.z)*
-											   rotateX(camera.rx)*
-											   rotateY(camera.ry)*
-											   rotateZ(camera.rz);
 
-	for(LightSource* light: lights){
-
-
-	}
 	return c;
 }
 
-void Scene::clear(){
+void Camera::clear(){
 	for(int i = 0; i < viewPort.width; i++){
 		for(int j = 0; j < viewPort.height; j++){
 			viewPort.pixels[i][j] = 0xFFFFFF;

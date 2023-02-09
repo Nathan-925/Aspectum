@@ -40,6 +40,7 @@ namespace asp{
 			}
 			else if(command.compare("illum") == 0){
 				file >> materials[active].illuminationModel;
+				materials[active].illuminationModel = min(2, materials[active].illuminationModel);
 			}
 			else if(command.compare("Ns") == 0){
 				file >> materials[active].shine;
