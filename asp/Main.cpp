@@ -21,58 +21,22 @@ using namespace asp;
 
 int main(){
 
-	Model testModel = readobj("test.obj");
-	for(Triangle t: testModel){
-		for(int i = 0; i < 3; i++){
-			cout << "position " << t[i].position.x << " " << t[i].position.y << " " << t[i].position.z << endl;
-			cout << "texel " << t[i].texel.x << " " << t[i].texel.y << endl;
-			cout << "normal " << t.normals[i].x << " " << t.normals[i].y << " " << t.normals[i].z << endl;
-		}
-	}
+	Texture noeTexture(readbmp("noe.bmp"));
 
-	Image tex(256, 256);
-	for(int i = 0; i < 256; i++)
-		for(int j = 0; j < 256; j++)
-			tex[i][j] = Color(i, 0, j);
-	Texture colorTexture(tex);
-
-	Image noe = readbmp("noe.bmp");
-	Texture noeTexture(noe);
-
-	Vertex vertices[4];
-
-	vertices[0].position = Point3D(-30, -30, 80);
-	vertices[0].texel = Point(0, 0);
-
-	vertices[1].position = Point3D(30, -30, 40);
-	vertices[1].texel = Point(1, 0);
-
-	vertices[2].position = Point3D(-30, 30, 80);
-	vertices[2].texel = Point(0, 1);
-
-	vertices[3].position = Point3D(30, 30, 40);
-	vertices[3].texel = Point(1, 1);
-
-	Model model = readobj("untitled.obj");
-
-	//model.emplace_front();
-	//model.front().texture = &noeTexture;
-	//model.front()[0].position = Point3D(0, 0, 0);
-	//model.front()[1].position = Point3D(1, 0, 0);
-	//model.front()[2].position = Point3D(0, 1, 0);
-	//model.front()[0].texel = Point(0, 1);
-	//model.front()[1].texel = Point(1, 1);
-	//model.front()[2].texel = Point(0, 0);
-	//model.front().normals[0] = (model.front()[2].position-model.front()[1].position)^(model.front()[0].position-model.front()[1].position);
-	//model.front().normals[1] = model.front().normals[0];
-	//model.front().normals[2] = model.front().normals[0];
+	Model model = getCube(&noeTexture);
+	for(Triangle t: model)
+		cout << t.material.illuminationModel << endl;
 
 	Scene scene;
+
+	DirectionalLight d{0xFFFFFF, 1, Vector3D(0, 0, 1)};
+	scene.directionalLights.push_back(&d);
+
 	Instance i(&model);
-	i *= scale(30, 30, 30);
+	i.transform *= scale(30, 30, 30);
 	//i *= rotateX(M_PI/3);
-	i *= rotateY(M_PI/8);
-	i *= translate(0, -2500, 5000);
+	i.transform *= rotateY(M_PI/8);
+	i.transform *= translate(0, 0, 100);
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);
@@ -81,9 +45,10 @@ int main(){
 	//camera.camera.ry = -M_PI/2;
 
 	RenderSettings settings;
+	settings.wireframe = false;
 	settings.textures = true;
-	settings.wireframe = true;
-	settings.shadingMode = settings.Gouraund;
+	settings.shading = true;
+	settings.specular = true;
 	camera.settings = &settings;
 
 	camera.render(scene);

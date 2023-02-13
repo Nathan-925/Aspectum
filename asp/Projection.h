@@ -41,13 +41,6 @@ namespace asp{
 		Vertex operator/=(const double &d);
 	};
 
-	struct Fragment{
-		int x, y;
-		double depth;
-		priori::Color color;
-		priori::Point texel;
-	};
-
 	struct Material{
 		priori::Color ambient, diffuse, specular;
 		Texture* ambientTexture = nullptr;
@@ -60,7 +53,7 @@ namespace asp{
 
 	struct Triangle{
 		Vertex points[3];
-		Material* material = nullptr;
+		Material material;
 
 		Vertex& operator[](const int &n);
 	};

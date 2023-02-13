@@ -17,8 +17,8 @@
 
 using namespace std;
 using namespace priori;
-using namespace asp;
 
+namespace asp{
 Vertex Vertex::operator+(const Vertex &other) const{
 	Vertex out(*this);
 	out.position += other.position;
@@ -75,8 +75,8 @@ Vertex& Triangle::operator[](const int &n){
 	return points[n];
 }
 
-Triangle operator*(const priori::TransformationMatrix &transform, const Triangle &triangle){
-	Triangle out;
+Triangle operator*(const TransformationMatrix &transform, const Triangle &triangle){
+	Triangle out = triangle;
 	for(int i = 0; i < 3; i++){
 		out[i].position = transform*triangle.points[i].position;
 		out[i].normal = transform*triangle.points[i].normal;
@@ -91,16 +91,6 @@ Color Texture::getColor(double x, double y){
 Instance::Instance(Model* m) : model(m), transform() {};
 
 Instance::Instance(Model* m, TransformationMatrix t) : model(m), transform(t) {};
-
-Instance operator*(const TransformationMatrix &transform, const Instance &instance){
-	Instance out(instance.model, transform*instance.transform);
-	return out;
-}
-
-Instance operator*=(Instance &instance, const TransformationMatrix &transform){
-	instance.transform *= transform;
-	return instance;
-}
 
 Camera::Camera(int width, int height) :
 		depthInverse(new double*[width]),
@@ -141,16 +131,27 @@ void Camera::render(const Scene &scene){
 	//instance transformation
 	Model triangles;
 	for(Instance* i: scene.objects)
-		for(Triangle t: i->model)
+		for(Triangle t: *i->model){
 			triangles.push_front(i->transform*t);
+			cout << triangles.front().material.illuminationModel << endl;
+		}
 
 	//camera space transformation
+	TransformationMatrix cameraMatrix;
 	for(Triangle &t: triangles)
-		t = rotateZ(rz)*
-			rotateY(ry)*
-			rotateX(rx)*
-			translate(-position.x, -position.y, -position.z)*
-			t;
+		t = cameraMatrix*t;
+
+	DirectionalLight* directionalLights = new DirectionalLight[scene.directionalLights.size()];
+	for(uint i = 0; i < scene.directionalLights.size(); i++){
+		directionalLights[i] = *scene.directionalLights[i];
+		directionalLights[i].vector = (cameraMatrix*directionalLights->vector).normalize();
+	}
+
+	PointLight* pointLights = new PointLight[scene.pointLights.size()];
+	for(uint i = 0; i < scene.pointLights.size(); i++){
+		pointLights[i] = *scene.pointLights[i];
+		pointLights[i].point = cameraMatrix*pointLights->point;
+	}
 	cout << "transformed" << endl;
 
 	//culling
@@ -205,12 +206,15 @@ void Camera::render(const Scene &scene){
 		project(t);
 	cout << "projected" << endl;
 
-	if(settings->wireframe)
-		for(Triangle &triangle: triangles)
-			priori::drawTriangle(viewPort, triangle.material->ambient, Point(triangle[0].position.x, triangle[0].position.y),
-																	   Point(triangle[1].position.x, triangle[1].position.y),
-																	   Point(triangle[2].position.x, triangle[2].position.y));
-	else
+	if(settings->wireframe){
+		for(Triangle &triangle: triangles){
+			priori::drawTriangle(viewPort, triangle.material.diffuse,
+								 Point(triangle[0].position.x, triangle[0].position.y),
+								 Point(triangle[1].position.x, triangle[1].position.y),
+								 Point(triangle[2].position.x, triangle[2].position.y));
+		}
+	}
+	else{
 		for(Triangle &triangle: triangles){
 			Vertex v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
 			if(v0.position.y > v1.position.y)
@@ -249,28 +253,38 @@ void Camera::render(const Scene &scene){
 					if(v.position.z > depthInverse[x][y]){
 						depthInverse[x][y] = v.position.z;
 
-						Color ambient = triangle.material->ambient,
-							  diffuse = triangle.material->diffuse,
-							  specular = triangle.material->specular;
+						Color ambient, diffuse, specular;
 						if(settings->textures){
-							if(triangle.material->ambientTexture != nullptr)
-								ambient *= triangle.material->ambientTexture->getColor(v.texel.x, v.texel.y);
-							if(triangle.material->diffuseTexture != nullptr)
-								diffuse *= triangle.material->diffuseTexture->getColor(v.texel.x, v.texel.y);
-							if(triangle.material->specularTexture != nullptr)
-								specular *= triangle.material->specularTexture->getColor(v.texel.x, v.texel.y);
+							if(triangle.material.ambientTexture != nullptr)
+								ambient *= triangle.material.ambientTexture->getColor(v.texel.x, v.texel.y);
+							if(triangle.material.diffuseTexture != nullptr)
+								diffuse *= triangle.material.diffuseTexture->getColor(v.texel.x, v.texel.y);
+							if(triangle.material.specularTexture != nullptr)
+								specular *= triangle.material.specularTexture->getColor(v.texel.x, v.texel.y);
 						}
 
-						if(settings->shading && triangle.material->illuminationModel != 0){
-							Color c = ambient*scene.ambientLight;
+						if(settings->shading && triangle.material.illuminationModel != 0){
+							Color c = ambient*(scene.ambientLight.color*scene.ambientLight.intensity);
 
+							Color dir = 0;
+							for(uint i = 0; i < scene.directionalLights.size(); i++){
+								double d = directionalLights[i].vector*v.normal.normalize();
+								if(d > 0)
+									dir += directionalLights[i].color*directionalLights[i].intensity*d;
+							}
+							c += diffuse*dir;
+
+							viewPort[x][y] = c;
 						}
 						else
-							viewPort[x][y] = triangle.material->diffuse;
+							viewPort[x][y] = triangle.material.diffuse;
 					}
 				}
 			}
 		}
+	}
+	delete[] directionalLights;
+	delete[] pointLights;
 }
 
 Color Camera::shade(Point3D point, Vector3D normal, Material* material){
@@ -286,4 +300,5 @@ void Camera::clear(){
 			depthInverse[i][j] = 0;
 		}
 	}
+}
 }

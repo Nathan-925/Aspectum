@@ -6,7 +6,6 @@
  */
 #include <fstream>
 #include <vector>
-#include <iostream>
 
 #include "objio.h"
 
@@ -29,6 +28,9 @@ namespace asp{
 			string command;
 			file >> command;
 
+			if(command.empty() || command.compare("#") == 0)
+				continue;
+
 			if(command.compare("v") == 0){
 				points.emplace_back();
 				file >> points.back().x >> points.back().y >> points.back().z;
@@ -48,7 +50,6 @@ namespace asp{
 					string s;
 					file >> s;
 					uint s1 = s.find('/'), s2 = s.rfind('/');
-					cout << s1 << " " << s2 << " " << s.npos << endl;
 
 					int pIndex = stoi(s.substr(0, s1));
 					model.front()[i].position = points[pIndex > 0 ? pIndex-1 : points.size()+pIndex];
@@ -62,7 +63,7 @@ namespace asp{
 				}
 
 				for(int i = 0; i < 3; i++)
-					model.front().normals[i] = normalIndexes[i] == 0 ?
+					model.front()[i].normal = normalIndexes[i] == 0 ?
 							(model.front()[0].position-model.front()[1].position)^(model.front()[2].position-model.front()[1].position) :
 							normals[normalIndexes[i] > 0 ? normalIndexes[i]-1 : normals.size()+normalIndexes[i]];
 
