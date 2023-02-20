@@ -25,19 +25,27 @@ int main(){
 
 	Model model = readobj("sphere.obj");
 	for(Triangle &t: model){
-		t.material.illuminationModel = 1;
+		t.material.illuminationModel = 2;
 		t.material.ambient = 0xFFFFFF;
-		t.material.diffuse = 0xFFFFFF;
+		t.material.diffuse = 0;
 		t.material.specular = 0xFFFFFF;
+		t.material.shine = 100;
 	}
 
 	Scene scene;
 
-	scene.ambientLight.color = 0xFFFFFF;
-	scene.ambientLight.intensity = 0.2;
+	//scene.ambientLight.color = 0xFFFFFF;
+	//scene.ambientLight.intensity = 0.2;
 
-	DirectionalLight d{0xFFFFFF, 0.8, Vector3D(0, 0, 1)};
-	scene.directionalLights.push_back(&d);
+	DirectionalLight d1{0xFF0000, 1, Vector3D(1, 0, 0)};
+	scene.directionalLights.push_back(&d1);
+	//DirectionalLight d2{0xFF00, 1, Vector3D(-1, 0, 0)};
+	//scene.directionalLights.push_back(&d2);
+	//DirectionalLight d3{0xFF, 1, Vector3D(0, 1, 0)};
+	//scene.directionalLights.push_back(&d3);
+
+	//PointLight p{0xFFFFFF, 1, Point3D(0, 0, 0)};
+	//scene.pointLights.push_back(&p);
 
 	Instance i(&model);
 	i.transform *= scale(10, 10, 10);
@@ -61,10 +69,10 @@ int main(){
 	camera.render(scene);
 	cout << "end render" << endl;
 
-	for(int i = 0; i < camera.viewPort.width; i++)
-		camera.viewPort[i][camera.viewPort.height/2] = 0xFF0000;
-	for(int i = 0; i < camera.viewPort.height; i++)
-		camera.viewPort[camera.viewPort.width/2][i] = 0xFF0000;
+	//for(int i = 0; i < camera.viewPort.width; i++)
+	//	camera.viewPort[i][camera.viewPort.height/2] = 0xFF0000;
+	//for(int i = 0; i < camera.viewPort.height; i++)
+	//	camera.viewPort[camera.viewPort.width/2][i] = 0xFF0000;
 
 	writebmp("test.bmp", camera.viewPort);
 	cout << "end program" << endl;
