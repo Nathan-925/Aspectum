@@ -23,35 +23,23 @@ int main(){
 
 	Texture noeTexture(readbmp("noe.bmp"));
 
-	Model model = readobj("sphere.obj");
-	for(Triangle &t: model){
-		t.material.illuminationModel = 2;
-		t.material.ambient = 0xFFFFFF;
-		t.material.diffuse = 0;
-		t.material.specular = 0xFFFFFF;
-		t.material.shine = 100;
-	}
+	Model model = readobj("untitled.obj");
 
 	Scene scene;
 
-	//scene.ambientLight.color = 0xFFFFFF;
-	//scene.ambientLight.intensity = 0.2;
+	scene.ambientLight.color = 0xFFFFFF;
+	scene.ambientLight.intensity = 0.5;
 
-	DirectionalLight d1{0xFF0000, 1, Vector3D(1, 0, 0)};
-	scene.directionalLights.push_back(&d1);
-	//DirectionalLight d2{0xFF00, 1, Vector3D(-1, 0, 0)};
-	//scene.directionalLights.push_back(&d2);
-	//DirectionalLight d3{0xFF, 1, Vector3D(0, 1, 0)};
-	//scene.directionalLights.push_back(&d3);
+	//DirectionalLight d1{0xFFFFFF, 0.5, Vector3D(1, -1, 1)};
+	//scene.directionalLights.push_back(&d1);
 
 	//PointLight p{0xFFFFFF, 1, Point3D(0, 0, 0)};
 	//scene.pointLights.push_back(&p);
 
 	Instance i(&model);
-	i.transform *= scale(10, 10, 10);
-	//i.transform *= rotateX(M_PI/4);
-	//i.transform *= rotateY(M_PI/4);
-	i.transform *= translate(0, 0, 100);
+	//i.transform *= scale(10, 10, 10);
+	i.transform *= rotateY(M_PI);
+	i.transform *= translate(0, -100, 200);
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);
@@ -61,7 +49,7 @@ int main(){
 
 	RenderSettings settings;
 	settings.wireframe = false;
-	settings.textures = true;
+	settings.textures = false;
 	settings.shading = true;
 	settings.specular = true;
 	camera.settings = &settings;

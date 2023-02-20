@@ -1,0 +1,132 @@
+# Blender 3.4.1 MTL File: 'untitled.blend'
+# www.blender.org
+
+newmtl mario_cap
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl mario_eyes
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_eyes_center.png
+#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_eyes_center.png
+
+newmtl mario_face
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.991102 0.533276 0.191202
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl mario_hair
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.171441 0.001821 0.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl mario_hair_sideburn
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_sideburn.png
+#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_sideburn.png
+
+newmtl mario_hand
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl mario_m_logo
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_logo.png
+#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_logo.png
+
+newmtl mario_mustache
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_mustache.png
+#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_mustache.png
+
+newmtl mario_overalls
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl mario_shoes
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.168269 0.011612 0.004391
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl mario_wings_half_1
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing.png
+#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing.png
+
+newmtl mario_wings_half_2
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing_tip.png
+#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing_tip.png
+
+newmtl mario_yellow_button
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_overalls_button.png
+#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_overalls_button.png
