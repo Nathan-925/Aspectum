@@ -23,19 +23,26 @@ int main(){
 
 	Texture noeTexture(readbmp("noe.bmp"));
 
-	Model model = getCube(&noeTexture);
-	for(Triangle t: model)
-		cout << t.material.illuminationModel << endl;
+	Model model = readobj("sphere.obj");
+	for(Triangle &t: model){
+		t.material.illuminationModel = 1;
+		t.material.ambient = 0xFFFFFF;
+		t.material.diffuse = 0xFFFFFF;
+		t.material.specular = 0xFFFFFF;
+	}
 
 	Scene scene;
 
-	DirectionalLight d{0xFFFFFF, 1, Vector3D(0, 0, 1)};
+	scene.ambientLight.color = 0xFFFFFF;
+	scene.ambientLight.intensity = 0.2;
+
+	DirectionalLight d{0xFFFFFF, 0.8, Vector3D(0, 0, 1)};
 	scene.directionalLights.push_back(&d);
 
 	Instance i(&model);
-	i.transform *= scale(30, 30, 30);
-	//i *= rotateX(M_PI/3);
-	i.transform *= rotateY(M_PI/8);
+	i.transform *= scale(10, 10, 10);
+	//i.transform *= rotateX(M_PI/4);
+	//i.transform *= rotateY(M_PI/4);
 	i.transform *= translate(0, 0, 100);
 	scene.objects.push_back(&i);
 
@@ -53,6 +60,11 @@ int main(){
 
 	camera.render(scene);
 	cout << "end render" << endl;
+
+	for(int i = 0; i < camera.viewPort.width; i++)
+		camera.viewPort[i][camera.viewPort.height/2] = 0xFF0000;
+	for(int i = 0; i < camera.viewPort.height; i++)
+		camera.viewPort[camera.viewPort.width/2][i] = 0xFF0000;
 
 	writebmp("test.bmp", camera.viewPort);
 	cout << "end program" << endl;

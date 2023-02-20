@@ -26,7 +26,6 @@ namespace asp{
 			t, t, t,
 			1, 0,
 			1};
-			cout << triangle.material.illuminationModel << endl;
 		}
 		return cube;
 	}

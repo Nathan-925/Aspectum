@@ -131,10 +131,8 @@ void Camera::render(const Scene &scene){
 	//instance transformation
 	Model triangles;
 	for(Instance* i: scene.objects)
-		for(Triangle t: *i->model){
+		for(Triangle t: *i->model)
 			triangles.push_front(i->transform*t);
-			cout << triangles.front().material.illuminationModel << endl;
-		}
 
 	//camera space transformation
 	TransformationMatrix cameraMatrix;
@@ -144,13 +142,13 @@ void Camera::render(const Scene &scene){
 	DirectionalLight* directionalLights = new DirectionalLight[scene.directionalLights.size()];
 	for(uint i = 0; i < scene.directionalLights.size(); i++){
 		directionalLights[i] = *scene.directionalLights[i];
-		directionalLights[i].vector = (cameraMatrix*directionalLights->vector).normalize();
+		directionalLights[i].vector = (cameraMatrix*directionalLights[i].vector*-1).normalize();
 	}
 
 	PointLight* pointLights = new PointLight[scene.pointLights.size()];
 	for(uint i = 0; i < scene.pointLights.size(); i++){
 		pointLights[i] = *scene.pointLights[i];
-		pointLights[i].point = cameraMatrix*pointLights->point;
+		pointLights[i].point = cameraMatrix*pointLights[i].point;
 	}
 	cout << "transformed" << endl;
 
@@ -206,15 +204,13 @@ void Camera::render(const Scene &scene){
 		project(t);
 	cout << "projected" << endl;
 
-	if(settings->wireframe){
-		for(Triangle &triangle: triangles){
+	if(settings->wireframe)
+		for(Triangle &triangle: triangles)
 			priori::drawTriangle(viewPort, triangle.material.diffuse,
 								 Point(triangle[0].position.x, triangle[0].position.y),
 								 Point(triangle[1].position.x, triangle[1].position.y),
 								 Point(triangle[2].position.x, triangle[2].position.y));
-		}
-	}
-	else{
+	else
 		for(Triangle &triangle: triangles){
 			Vertex v0 = triangle[0], v1 = triangle[1], v2 = triangle[2];
 			if(v0.position.y > v1.position.y)
@@ -253,8 +249,11 @@ void Camera::render(const Scene &scene){
 					if(v.position.z > depthInverse[x][y]){
 						depthInverse[x][y] = v.position.z;
 
-						Color ambient, diffuse, specular;
+						Color ambient = triangle.material.ambient,
+							  diffuse = triangle.material.diffuse,
+							  specular = triangle.material.specular;
 						if(settings->textures){
+							v.texel /= v.position.z;
 							if(triangle.material.ambientTexture != nullptr)
 								ambient *= triangle.material.ambientTexture->getColor(v.texel.x, v.texel.y);
 							if(triangle.material.diffuseTexture != nullptr)
@@ -264,25 +263,40 @@ void Camera::render(const Scene &scene){
 						}
 
 						if(settings->shading && triangle.material.illuminationModel != 0){
-							Color c = ambient*(scene.ambientLight.color*scene.ambientLight.intensity);
+							viewPort[x][y] = ambient*(scene.ambientLight.color*scene.ambientLight.intensity);
 
-							Color dir = 0;
+							Color diffuseSum = 0;
+
 							for(uint i = 0; i < scene.directionalLights.size(); i++){
 								double d = directionalLights[i].vector*v.normal.normalize();
 								if(d > 0)
-									dir += directionalLights[i].color*directionalLights[i].intensity*d;
+									diffuseSum += diffuse*(directionalLights[i].color*directionalLights[i].intensity*d);
 							}
-							c += diffuse*dir;
 
-							viewPort[x][y] = c;
+							Color pnt = 0;
+							for(uint i = 0; i < scene.pointLights.size(); i++){
+								Vector3D l = pointLights[i].point-Point3D((v.position.x-viewPort.width/2)/(focalLength*v.position.z),
+																		  (viewPort.height/2-v.position.y)/(focalLength*v.position.z),
+																		  1/v.position.z);
+								double d = (l*v.normal)/(l.magnitude()*v.normal.magnitude());
+								if(d > 0)
+									diffuseSum += diffuse*(pointLights[i].color*pointLights[i].intensity*d);
+							}
+
+							viewPort[x][y] += diffuse*diffuseSum;
+
+							if(settings->specular && triangle.material.illuminationModel >= 2){
+								Color specularSum = 0;
+
+
+							}
 						}
 						else
-							viewPort[x][y] = triangle.material.diffuse;
+							viewPort[x][y] = diffuse;
 					}
 				}
 			}
 		}
-	}
 	delete[] directionalLights;
 	delete[] pointLights;
 }
