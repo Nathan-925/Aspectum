@@ -136,7 +136,10 @@ void Camera::render(const Scene &scene){
 			triangles.push_front(i->transform*t);
 
 	//camera space transformation
-	TransformationMatrix cameraMatrix;
+	TransformationMatrix cameraMatrix = translate(-position.x, -position.y, -position.z)*
+										rotateZ(rz)*
+										rotateY(ry)*
+										rotateX(rx);
 	for(Triangle &t: triangles)
 		t = cameraMatrix*t;
 
@@ -287,14 +290,16 @@ void Camera::render(const Scene &scene){
 							if(settings->specular && triangle.material.illuminationModel >= 2){
 								Color specularSum = 0;
 								for(uint i = 0; i < scene.directionalLights.size()+scene.pointLights.size(); i++){
-									Vector3D toCamera = position - Point3D((x-viewPort.width/2)/(focalLength*v.position.z),
-																		   (viewPort.height/2-y)/(focalLength*v.position.z),
-																		   1/v.position.z);
+									Vector3D toCamera = Point3D(-(x-viewPort.width/2)/(focalLength*v.position.z),
+																-(viewPort.height/2-y)/(focalLength*v.position.z),
+																-1/v.position.z);
 									Vector3D reflect = v.normal*2*(v.normal*directionalLights[i].vector) - directionalLights[i].vector;
 									double d = (reflect*toCamera)/(reflect.magnitude()*toCamera.magnitude());
-									if(d > 0)
-										specularSum += directionalLights[i].color*pow(d, triangle.material.shine);
-								}
+									if(d > 0){
+										specularSum += directionalLights[i].color*directionalLights[i].intensity*pow(d, triangle.material.shine);
+										cout << hex << uint32_t(directionalLights[i].color*directionalLights[i].intensity*pow(d, triangle.material.shine)) << dec << endl;
+									}
+									}
 								viewPort[x][y] += specular*specularSum;
 							}
 						}

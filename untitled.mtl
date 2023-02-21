@@ -18,8 +18,7 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_eyes_center.png
-#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_eyes_center.png
+map_Kd mario_eyes_center.bmp
 
 newmtl mario_face
 Ns 250.000000
@@ -48,8 +47,7 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_sideburn.png
-#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_sideburn.png
+map_Kd mario_sideburn.bmp
 
 newmtl mario_hand
 Ns 250.000000
@@ -68,8 +66,7 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_logo.png
-#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_logo.png
+map_Kd mario_logo.bmp
 
 newmtl mario_mustache
 Ns 250.000000
@@ -78,8 +75,7 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_mustache.png
-#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_mustache.png
+map_Kd mario_mustache.bmp
 
 newmtl mario_overalls
 Ns 250.000000
@@ -108,8 +104,7 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing.png
-#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing.png
+map_Kd mario_wing.bmp
 
 newmtl mario_wings_half_2
 Ns 250.000000
@@ -118,8 +113,7 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing_tip.png
-#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_wing_tip.png
+map_Kd mario_wing_tip.bmp
 
 newmtl mario_yellow_button
 Ns 250.000000
@@ -128,5 +122,4 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-#map_Kd C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_overalls_button.png
-#map_d C:/Users/Nathan/Downloads/Nintendo 64 - Super Mario 64 - Mario/mario_overalls_button.png
+map_Kd mario_overalls_button.bmp

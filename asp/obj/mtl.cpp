@@ -52,6 +52,7 @@ namespace asp{
 				else if(command.substr(0, 3).compare("map") == 0){
 					string textureFile;
 					file >> textureFile;
+					cout << textureFile << endl;
 					if(textureFile.substr(textureFile.length()-3).compare("bmp") != 0)
 						throw "non bmp texture file";
 
