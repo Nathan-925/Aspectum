@@ -25,7 +25,7 @@ int main(){
 
 	Model model = readobj("sphere.obj");
 
-	for(Triangle &t: model){
+	for(Triangle &t: model.triangles){
 		t.material.illuminationModel = 2;
 		t.material.ambient = 0xFFFFFF;
 		t.material.diffuse = 0xFFFFFF;

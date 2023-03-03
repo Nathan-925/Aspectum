@@ -41,6 +41,10 @@ namespace asp{
 		Vertex operator/=(const double &d);
 	};
 
+	Vertex operator*(const priori::TransformationMatrix &transform, Vertex vertex);
+
+	Vertex operator*=(Vertex &vertex, const priori::TransformationMatrix &transform);
+
 	struct Material{
 		priori::Color ambient, diffuse, specular;
 		Texture* ambientTexture = nullptr;
@@ -52,15 +56,23 @@ namespace asp{
 	};
 
 	struct Triangle{
-		Vertex points[3];
+		Vertex* vertices[3];
 		Material material;
 
 		Vertex& operator[](const int &n);
+		const Vertex& operator[](const int &n) const;
 	};
 
 	Triangle operator*(const priori::TransformationMatrix &transform, const Triangle &triangle);
 
-	typedef std::forward_list<Triangle> Model;
+	struct Model{
+		std::vector<Vertex> vertices;
+		std::forward_list<Triangle> triangles;
+	};
+
+	Model operator*(const priori::TransformationMatrix &transform, Model model);
+
+	Model operator*=(Model &model, const priori::TransformationMatrix &transform);
 
 	class Texture{
 		priori::Image image;
@@ -84,9 +96,6 @@ namespace asp{
 		Instance(Model* m);
 		Instance(Model* m, priori::TransformationMatrix t);
 	};
-
-	Instance operator*(const priori::TransformationMatrix &transform, const Instance &instance);
-	Instance operator*=(Instance &instance, const priori::TransformationMatrix &transform);
 
 	struct Scene{
 		std::vector<Instance*> objects;

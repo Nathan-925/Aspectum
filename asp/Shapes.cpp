@@ -20,7 +20,7 @@ namespace asp{
 	Model getCube(Texture* t){
 
 		Model cube = readobj("cube.obj");
-		for(Triangle &triangle: cube){
+		for(Triangle &triangle: cube.triangles){
 			triangle.material = Material{
 			0xFFFFFF, 0xFFFFFF, 0xFFFFFF,
 			t, t, t,
