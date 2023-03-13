@@ -102,7 +102,9 @@ Triangle operator*(const TransformationMatrix &transform, const Triangle &triang
 
 Model::Model() : vertices(), triangles(){};
 
-Model::Model(const Model &other) : vertices(oth)
+Model::Model(const Model &other) : vertices(other.vertices), triangles(){
+
+}
 
 Color Texture::getColor(double x, double y){
 	return image.pixels[(int)round(x*(image.width-1))][(int)round(y*(image.height-1))];
