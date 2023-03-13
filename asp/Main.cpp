@@ -23,7 +23,7 @@ int main(){
 
 	Texture noeTexture(readbmp("noe.bmp"));
 
-	Model model = readobj("sphere.obj");
+	Model model = readobj("cube.obj");
 
 	for(Triangle &t: model.triangles){
 		t.material.illuminationModel = 2;
@@ -46,7 +46,7 @@ int main(){
 
 	Instance i(&model);
 	i.transform *= scale(10, 10, 10);
-	i.transform *= translate(0, 0, 50);
+	i.transform *= translate(0, 0, 100);
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);

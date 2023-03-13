@@ -100,17 +100,9 @@ Triangle operator*(const TransformationMatrix &transform, const Triangle &triang
 	return out;
 }
 
-Model operator*(const TransformationMatrix &transform, Model model){
-	for(Vertex &v: model.vertices)
-		v *= transform;
-	return model;
-}
+Model::Model() : vertices(), triangles(){};
 
-Model operator*=(Model &model, const TransformationMatrix &transform){
-	for(Vertex &v: model.vertices)
-		v *= transform;
-	return model;
-}
+Model::Model(const Model &other) : vertices(oth)
 
 Color Texture::getColor(double x, double y){
 	return image.pixels[(int)round(x*(image.width-1))][(int)round(y*(image.height-1))];
@@ -142,9 +134,11 @@ Camera::~Camera(){
 
 void Camera::project(Triangle &triangle){
 	for(int i = 0; i < 3; i++){
+		cout << triangle[i].position.x << " " << triangle[i].position.y << " " << triangle[i].position.z << endl;
 		triangle[i].position = Point3D((int)(viewPort.width/2+((triangle[i].position.x*focalLength)/triangle[i].position.z)),
 									   (int)(viewPort.height/2-((triangle[i].position.y*focalLength)/triangle[i].position.z)),
 									   1/triangle[i].position.z);
+		cout << triangle[i].position.x << " " << triangle[i].position.y << " " << triangle[i].position.z << endl;
 		triangle[i].texel *= triangle[i].position.z;
 		triangle[i].normal = triangle[i].normal.normalize();
 	}
@@ -157,17 +151,26 @@ void Camera::setFOV(double fov){
 void Camera::render(const Scene &scene){
 	cout << "render" << endl;
 
+	TransformationMatrix cameraMatrix = translate(-position.x, -position.y, -position.z)*
+										rotateZ(rz)*
+										rotateY(ry)*
+										rotateX(rx);
+
 	for(Instance* instance: scene.objects){
+		cout << instance->model->vertices.size() << endl;
 
-		//instance transformation
-		Model model = instance->transform**instance->model;
+		cout << instance->model->vertices[0].position.x << " " << instance->model->vertices[0].position.y << " " << instance->model->vertices[0].position.z << endl;
+		//transformation
+		TransformationMatrix transform = instance->transform*cameraMatrix;
 
-		//camera space transformation
-		TransformationMatrix cameraMatrix = translate(-position.x, -position.y, -position.z)*
-											rotateZ(rz)*
-											rotateY(ry)*
-											rotateX(rx);
-		model *= cameraMatrix;
+		Model model;
+		for(Vertex v: instance->model->vertices)
+			model.vertices.push_back(transform*v);
+		for(Triangle t: instance->model->triangles)
+			model.triangles.push_front(t);
+		cout << distance(model.triangles.begin(), model.triangles.end()) << endl;
+
+		cout << model.vertices[0].position.x << " " << model.vertices[0].position.y << " " << model.vertices[0].position.z << endl;
 
 		DirectionalLight* directionalLights = new DirectionalLight[scene.directionalLights.size()+scene.pointLights.size()];
 		for(uint i = 0; i < scene.directionalLights.size(); i++){
@@ -180,6 +183,7 @@ void Camera::render(const Scene &scene){
 			pointLights[i] = *scene.pointLights[i];
 			pointLights[i].point = cameraMatrix*pointLights[i].point;
 		}
+		cout << distance(model.triangles.begin(), model.triangles.end()) << endl;
 		cout << "transformed" << endl;
 
 		//culling
@@ -194,6 +198,7 @@ void Camera::render(const Scene &scene){
 								 Plane(Vector3D(0, y, cos(yAngle)), 0),
 								 Plane(Vector3D(0, -y, cos(yAngle)), 0)};
 
+		cout << distance(model.triangles.begin(), model.triangles.end()) << endl;
 		for(Plane plane: cullingPlanes){
 			auto prev = model.triangles.before_begin();
 			for(auto it = model.triangles.begin(); it != model.triangles.end(); prev = it++){
@@ -234,6 +239,8 @@ void Camera::render(const Scene &scene){
 		}
 		cout << "culled" << endl;
 
+		cout << distance(model.triangles.begin(), model.triangles.end()) << endl;
+		cout << distance(instance->model->triangles.begin(), instance->model->triangles.end()) << endl;
 		for(Triangle &t: model.triangles)
 			project(t);
 		cout << "projected" << endl;

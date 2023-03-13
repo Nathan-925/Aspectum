@@ -68,11 +68,10 @@ namespace asp{
 	struct Model{
 		std::vector<Vertex> vertices;
 		std::forward_list<Triangle> triangles;
+
+		Model();
+		Model(const Model &other);
 	};
-
-	Model operator*(const priori::TransformationMatrix &transform, Model model);
-
-	Model operator*=(Model &model, const priori::TransformationMatrix &transform);
 
 	class Texture{
 		priori::Image image;

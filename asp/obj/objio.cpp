@@ -21,7 +21,6 @@ namespace asp{
 
 	Model readobj(string fileName){
 		Model model;
-		vector<Point3D> points;
 		vector<Point> texels;
 		vector<Vector3D> normals;
 		unordered_map<string, Material> materials;
@@ -34,8 +33,8 @@ namespace asp{
 
 			if(!(command.empty() || command[0] == '#')){
 				if(command.compare("v") == 0){
-					points.emplace_back();
-					file >> points.back().x >> points.back().y >> points.back().z;
+					model.vertices.emplace_back();
+					file >> model.vertices.back().position.x >> model.vertices.back().position.y >> model.vertices.back().position.z;
 				}
 				else if(command.compare("vt") == 0){
 					texels.emplace_back();
@@ -56,7 +55,7 @@ namespace asp{
 						model.triangles.front().vertices[i] = new Vertex();
 
 						int pIndex = stoi(s.substr(0, s1));
-						model.triangles.front()[i].position = points[pIndex > 0 ? pIndex-1 : points.size()+pIndex];
+						model.triangles.front().vertices[i] = &model.vertices[pIndex > 0 ? pIndex-1 : model.vertices.size()+pIndex];
 
 						if(s1 < s.length()-1 && s2 > s1+1){
 							int tIndex = stoi(s.substr(s1+1, s2));
