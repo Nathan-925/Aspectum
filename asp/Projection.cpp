@@ -123,6 +123,7 @@ Fragment Fragment::operator/(const double &d) const{
 	return out;
 }
 
+<<<<<<< HEAD
 Fragment Fragment::operator*=(const double &d){
 	position *= d;
 	texel *= d;
@@ -135,6 +136,10 @@ Fragment Fragment::operator/=(const double &d){
 	texel /= d;
 	normal /= d;
 	return *this;
+=======
+Model::Model(const Model &other) : vertices(other.vertices), triangles(){
+
+>>>>>>> branch 'master' of https://github.com/Nathan-925/Aspectum
 }
 
 Color Texture::getColor(double x, double y){
