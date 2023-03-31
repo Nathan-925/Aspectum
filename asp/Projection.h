@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <cmath>
 #include <vector>
+#include <unordered_map>
+#include <string>
 
 #include "Lights.h"
 
@@ -81,6 +83,7 @@ namespace asp{
 	struct Model{
 		std::vector<Vertex> vertices;
 		std::vector<Triangle> triangles;
+		std::unordered_map<std::string, Material> materials;
 	};
 
 	class Texture{

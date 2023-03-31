@@ -24,8 +24,7 @@ namespace asp{
 		Model model;
 		vector<Point> texels;
 		vector<Vector3D> normals;
-		unordered_map<string, Material> materials;
-		Material activeMaterial;
+		string activeMaterial;
 		ifstream file(fileName);
 
 		while(file.good()){
@@ -71,19 +70,17 @@ namespace asp{
 								normal :
 								normals[normalIndexes[i] > 0 ? normalIndexes[i]-1 : normals.size()+normalIndexes[i]];
 
-					model.triangles.back().material = activeMaterial;
+					model.triangles.back().material = model.materials[activeMaterial];
 
 				}
 				else if(command.compare("mtllib") == 0){
 					string mtlName;
 					file >> mtlName;
 					auto newMtl = readmtl(mtlName);
-					materials.insert(newMtl.begin(), newMtl.end());
+					model.materials.insert(newMtl.begin(), newMtl.end());
 				}
 				else if(command.compare("usemtl") == 0){
-					string mtlName;
-					file >> mtlName;
-					activeMaterial = materials[mtlName];
+					file >> activeMaterial;
 				}
 			}
 			file.ignore(numeric_limits<streamsize>::max(), '\n');

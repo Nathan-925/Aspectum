@@ -138,6 +138,12 @@ Fragment Fragment::operator/=(const double &d){
 }
 
 Color Texture::getColor(double x, double y){
+	x -= (int)x;
+	y -= (int)y;
+	if(x < 0)
+		x +=1;
+	if(y < 0)
+		y += 1;
 	return image.pixels[(int)round(x*(image.width-1))][(int)round(y*(image.height-1))];
 }
 
@@ -190,7 +196,6 @@ void Camera::render(const Scene &scene){
 			for(Vector3D &v: triangles.front().normals)
 				v = transform*v;
 		}
-		cout << vertices.size() << " " << distance(triangles.begin(), triangles.end()) << endl;
 
 		DirectionalLight* directionalLights = new DirectionalLight[scene.directionalLights.size()+scene.pointLights.size()];
 		for(uint i = 0; i < scene.directionalLights.size(); i++){
@@ -270,8 +275,6 @@ void Camera::render(const Scene &scene){
 					clipping.vertices[2] = t.vertices[culled[1]];
 					(*it).vertices[culled[0]] = clipping.vertices[1];
 
-					cout << vertices[clipping.vertices[0]].position.x << " " << vertices[clipping.vertices[0]].position.y << " " << vertices[clipping.vertices[0]].position.z << endl;
-
 					triangles.push_front(clipping);
 				}
 			}
@@ -279,12 +282,10 @@ void Camera::render(const Scene &scene){
 		cout << "culled" << endl;
 
 		for(Vertex &v: vertices){
-			cout << v.position.x << " " << v.position.y << " " << v.position.z << " -> ";
 			v.position = Point3D((int)(viewPort.width/2+((v.position.x*focalLength)/v.position.z)),
 								 (int)(viewPort.height/2-((v.position.y*focalLength)/v.position.z)),
 								 1/v.position.z);
 			v.texel *= v.position.z;
-			cout << v.position.x << " " << v.position.y << " " << v.position.z << endl;
 		}
 		cout << "projected" << endl;
 

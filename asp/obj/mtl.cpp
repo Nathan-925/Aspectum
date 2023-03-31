@@ -27,7 +27,6 @@ namespace asp{
 			file >> command;
 
 			if(!(command.empty() || command[0] == '#')){
-				cout << command << endl;
 				if(command.compare("newmtl") == 0){
 					file >> active;
 					materials.insert(make_pair(active, Material()));
@@ -52,19 +51,17 @@ namespace asp{
 				else if(command.substr(0, 3).compare("map") == 0){
 					string textureFile;
 					file >> textureFile;
-					cout << textureFile << endl;
 					if(textureFile.substr(textureFile.length()-3).compare("bmp") != 0)
 						throw "non bmp texture file";
 
-
-					Texture texture = Texture(readbmp(textureFile));
+					Texture* texture = new Texture(readbmp(textureFile));
 					string destination = command.substr(4);
 					if(destination.compare("Ka") == 0)
-						materials[active].ambientTexture = &texture;
+						materials[active].ambientTexture = texture;
 					else if(destination.compare("Kd") == 0)
-						materials[active].diffuseTexture = &texture;
+						materials[active].diffuseTexture = texture;
 					else if(destination.compare("Ks") == 0)
-						materials[active].specularTexture = &texture;
+						materials[active].specularTexture = texture;
 				}
 			}
 			file.ignore(numeric_limits<streamsize>::max(), '\n');
