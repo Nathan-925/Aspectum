@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <unordered_map>
+#include <iostream>
 
 #include "objio.h"
 #include "mtl.h"
@@ -45,32 +46,32 @@ namespace asp{
 					file >> normals.back().x >> normals.back().y >> normals.back().z;
 				}
 				else if(command[0] == 'f'){
-					model.triangles.emplace_front();
+					model.triangles.emplace_back();
 					int normalIndexes[3];
 					for(int i = 0; i < 3; i++){
 						string s;
 						file >> s;
 						uint s1 = s.find('/'), s2 = s.rfind('/');
 
-						model.triangles.front().vertices[i] = new Vertex();
-
 						int pIndex = stoi(s.substr(0, s1));
-						model.triangles.front().vertices[i] = &model.vertices[pIndex > 0 ? pIndex-1 : model.vertices.size()+pIndex];
+						model.triangles.back().vertices[i] = pIndex > 0 ? pIndex-1 : model.vertices.size()+pIndex;
 
 						if(s1 < s.length()-1 && s2 > s1+1){
 							int tIndex = stoi(s.substr(s1+1, s2));
-							model.triangles.front()[i].texel = texels[tIndex > 0 ? tIndex-1 : texels.size()+tIndex];
+							model.vertices[model.triangles.back().vertices[i]].texel = texels[tIndex > 0 ? tIndex-1 : texels.size()+tIndex];
 						}
 
 						normalIndexes[i] = s2 < s.length()-1 ? stoi(s.substr(s2+1)) : 0;
 					}
 
+
+					Vector3D normal = (model.vertices[model.triangles.back().vertices[0]].position-model.vertices[model.triangles.back().vertices[1]].position)^(model.vertices[model.triangles.back().vertices[2]].position-model.vertices[model.triangles.back().vertices[1]].position);
 					for(int i = 0; i < 3; i++)
-						model.triangles.front()[i].normal = normalIndexes[i] == 0 ?
-								(model.triangles.front()[0].position-model.triangles.front()[1].position)^(model.triangles.front()[2].position-model.triangles.front()[1].position) :
+						model.triangles.back().normals[i] = normalIndexes[i] == 0 ?
+								normal :
 								normals[normalIndexes[i] > 0 ? normalIndexes[i]-1 : normals.size()+normalIndexes[i]];
 
-					model.triangles.front().material = activeMaterial;
+					model.triangles.back().material = activeMaterial;
 
 				}
 				else if(command.compare("mtllib") == 0){

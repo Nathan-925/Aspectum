@@ -10,7 +10,6 @@
 
 #include <cstdint>
 #include <cmath>
-#include <forward_list>
 #include <vector>
 
 #include "Lights.h"
@@ -26,10 +25,9 @@ namespace asp{
 	struct Vertex{
 		priori::Point3D position;
 		priori::Point texel;
-		priori::Vector3D normal;
 
-		Vertex operator+(const Vertex &other) const;
-		Vertex operator-(const Vertex &other) const;
+		Vertex operator+(Vertex other) const;
+		Vertex operator-(Vertex other) const;
 
 		Vertex operator+=(const Vertex &other);
 		Vertex operator-=(const Vertex &other);
@@ -45,6 +43,25 @@ namespace asp{
 
 	Vertex operator*=(Vertex &vertex, const priori::TransformationMatrix &transform);
 
+	struct Fragment{
+		priori::Point3D position;
+		priori::Point texel;
+		priori::Vector3D normal;
+		priori::Color color;
+
+		Fragment operator+(Fragment other) const;
+		Fragment operator-(Fragment other) const;
+
+		Fragment operator+=(const Fragment &other);
+		Fragment operator-=(const Fragment &other);
+
+		Fragment operator*(const double &d) const;
+		Fragment operator/(const double &d) const;
+
+		Fragment operator*=(const double &d);
+		Fragment operator/=(const double &d);
+	};
+
 	struct Material{
 		priori::Color ambient, diffuse, specular;
 		Texture* ambientTexture = nullptr;
@@ -56,21 +73,14 @@ namespace asp{
 	};
 
 	struct Triangle{
-		Vertex* vertices[3];
+		int vertices[3];
+		priori::Vector3D normals[3];
 		Material material;
-
-		Vertex& operator[](const int &n);
-		const Vertex& operator[](const int &n) const;
 	};
-
-	Triangle operator*(const priori::TransformationMatrix &transform, const Triangle &triangle);
 
 	struct Model{
 		std::vector<Vertex> vertices;
-		std::forward_list<Triangle> triangles;
-
-		Model();
-		Model(const Model &other);
+		std::vector<Triangle> triangles;
 	};
 
 	class Texture{
@@ -106,15 +116,14 @@ namespace asp{
 	class Camera{
 		double** depthInverse;
 
-		void project(Triangle &triangle);
-		priori::Color shade(priori::Point3D point, priori::Vector3D normal, Material* material);
-
 	public:
 		double focalLength;
 		priori::Image viewPort;
 		RenderSettings* settings;
 		priori::Point3D position;
 		double rx, ry, rz;
+		std::vector<void (*)(Vertex&)> vertexShaders;
+		std::vector<void (*)(Fragment&)> fragmentShaders;
 
 		Camera(int width, int height);
 		~Camera();
