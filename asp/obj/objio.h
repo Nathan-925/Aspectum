@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "asp/Projection.h"
+#include "asp/Model.h"
 
 namespace asp{
 	void writeobj(std::string fileName, Model model);

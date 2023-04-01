@@ -8,7 +8,10 @@
 #include <cmath>
 #include <forward_list>
 
-#include "Projection.h"
+#include "Scene.h"
+#include "Model.h"
+#include "Camera.h"
+#include "Lights.h"
 #include "Shapes.h"
 #include "Shaders.h"
 #include "obj/objio.h"
@@ -37,12 +40,12 @@ int main(){
 	for(Triangle &t: model.triangles){
 		t.material.illuminationModel = 2;
 		t.material.ambient = t.material.diffuse;
-	//	t.material.diffuse = 0xFFFFFF;
+		//t.material.diffuse = 0xFFFFFF;
 		t.material.specular = t.material.diffuse;
 		t.material.shine = 10;
-	//	t.material.ambientTexture = &noeTexture;
-	//	t.material.diffuseTexture = &noeTexture;
-	//	t.material.specularTexture = &noeTexture;
+		//t.material.ambientTexture = &noeTexture;
+		//t.material.diffuseTexture = &noeTexture;
+		//t.material.specularTexture = &noeTexture;
 	}
 
 	//model.triangles.emplace_back();
@@ -53,20 +56,28 @@ int main(){
 
 	Scene scene;
 
-	scene.ambientLight.color = 0xFFFFFF;
-	scene.ambientLight.intensity = 0.3;
+	Light aLight;
+	aLight.color = 0xFFFFFF;
+	aLight.intensity = 0.3;
+	scene.lights.push_back(&aLight);
 
-	DirectionalLight d1{0xFFFFFF, 0.7, Vector3D(1, 0, 1)};
-	scene.directionalLights.push_back(&d1);
+	DirectionalLight dLight;
+	dLight.color = 0x5500FF;
+	dLight.intensity = 0.3;
+	dLight.vector = Vector3D(1, -1, 1);
+	scene.lights.push_back(&dLight);
 
-	PointLight p{0xFFFF00, 0.3, Point3D(25, 0, 0)};
-	//scene.pointLights.push_back(&p);
+	PointLight pLight;
+	pLight.color = 0xFFFF00;
+	pLight.intensity = 0.3;
+	pLight.point = Point3D(20, -20, 0);
+	scene.lights.push_back(&pLight);
 
 	Instance i(&model);
 	i.transform *= translate(0, -70, 0);
 	i.transform *= scale(10, 10, 10);
 	//i.transform *= rotateX(M_PI/6);
-	i.transform *= rotateY(M_PI);
+	i.transform *= rotateY(M_PI*7/6);
 	//i.transform *= rotateZ(M_PI/6);
 	i.transform *= translate(0, 0, 1500);
 	scene.objects.push_back(&i);

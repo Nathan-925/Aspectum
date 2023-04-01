@@ -8,7 +8,7 @@
 #ifndef SHAPES_H_
 #define SHAPES_H_
 
-#include "Projection.h"
+#include "Model.h"
 
 namespace asp{
 	Model getCube(Texture* t = nullptr);

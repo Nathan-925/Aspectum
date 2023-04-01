@@ -1,28 +1,24 @@
 /*
- * Projection.h
+ * Model.h
  *
- *  Created on: Dec 9, 2022
+ *  Created on: Mar 31, 2023
  *      Author: Nathan
  */
 
-#ifndef PROJECTION_H_
-#define PROJECTION_H_
+#ifndef MODEL_H_
+#define MODEL_H_
 
-#include <cstdint>
-#include <cmath>
 #include <vector>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
-#include "Lights.h"
-
-#include "priori/Math3D.h"
 #include "priori/Math.h"
+#include "priori/Math3D.h"
 #include "priori/Graphical.h"
 
 namespace asp{
 
-	class Texture;
+class Texture;
 
 	struct Vertex{
 		priori::Point3D position;
@@ -45,11 +41,25 @@ namespace asp{
 
 	Vertex operator*=(Vertex &vertex, const priori::TransformationMatrix &transform);
 
+	struct Material{
+		priori::Color ambient, diffuse, specular;
+		Texture* ambientTexture = nullptr;
+		Texture* diffuseTexture = nullptr;
+		Texture* specularTexture = nullptr;
+		double alpha;
+		double shine;
+		int illuminationModel;
+	};
+
+	class Camera;
+
 	struct Fragment{
+		Camera* camera;
 		priori::Point3D position;
 		priori::Point texel;
 		priori::Vector3D normal;
 		priori::Color color;
+		Material material;
 
 		Fragment operator+(Fragment other) const;
 		Fragment operator-(Fragment other) const;
@@ -64,26 +74,10 @@ namespace asp{
 		Fragment operator/=(const double &d);
 	};
 
-	struct Material{
-		priori::Color ambient, diffuse, specular;
-		Texture* ambientTexture = nullptr;
-		Texture* diffuseTexture = nullptr;
-		Texture* specularTexture = nullptr;
-		double alpha;
-		double shine;
-		int illuminationModel;
-	};
-
 	struct Triangle{
 		int vertices[3];
 		priori::Vector3D normals[3];
 		Material material;
-	};
-
-	struct Model{
-		std::vector<Vertex> vertices;
-		std::vector<Triangle> triangles;
-		std::unordered_map<std::string, Material> materials;
 	};
 
 	class Texture{
@@ -94,11 +88,10 @@ namespace asp{
 		priori::Color getColor(double x, double y);
 	};
 
-	struct RenderSettings{
-		bool wireframe = false;
-		bool textures = true;
-		bool shading = true;
-		bool specular = true;
+	struct Model{
+		std::vector<Vertex> vertices;
+		std::vector<Triangle> triangles;
+		std::unordered_map<std::string, Material> materials;
 	};
 
 	struct Instance{
@@ -109,32 +102,6 @@ namespace asp{
 		Instance(Model* m, priori::TransformationMatrix t);
 	};
 
-	struct Scene{
-		std::vector<Instance*> objects;
-		AmbientLight ambientLight;
-		std::vector<DirectionalLight*> directionalLights;
-		std::vector<PointLight*> pointLights;
-	};
-
-	class Camera{
-		double** depthInverse;
-
-	public:
-		double focalLength;
-		priori::Image viewPort;
-		RenderSettings* settings;
-		priori::Point3D position;
-		double rx, ry, rz;
-		std::vector<void (*)(Vertex&)> vertexShaders;
-		std::vector<void (*)(Fragment&)> fragmentShaders;
-
-		Camera(int width, int height);
-		~Camera();
-
-		void setFOV(double fov);
-		void render(const Scene &scene);
-		void clear();
-	};
 }
 
-#endif /* PROJECTION_H_ */
+#endif /* MODEL_H_ */

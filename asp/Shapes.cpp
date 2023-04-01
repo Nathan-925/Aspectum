@@ -7,7 +7,6 @@
 #include <iostream>
 
 #include "Shapes.h"
-#include "Projection.h"
 #include "obj/objio.h"
 
 #include "priori/Math.h"

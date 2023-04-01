@@ -8,7 +8,7 @@
 #ifndef SHADERS_H_
 #define SHADERS_H_
 
-#include "Projection.h"
+#include "Model.h"
 
 namespace asp{
 
