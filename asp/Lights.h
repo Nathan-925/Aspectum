@@ -32,7 +32,7 @@ namespace asp{
 	struct DirectionalLight : public Light{
 		priori::Vector3D vector;
 
-		DirectionalLight(priori::Color c = 0xFFFFFF, double i = 1, priori::Vector3D v = priori::Vector3D(0, 1, 0));
+		DirectionalLight(priori::Color c = 0xFFFFFF, double i = 1, priori::Vector3D v = priori::Vector3D{0, 1, 0});
 		DirectionalLight(const DirectionalLight &other);
 		~DirectionalLight();
 
@@ -43,9 +43,9 @@ namespace asp{
 	};
 
 	struct PointLight : public Light{
-		priori::Point3D point;
+		priori::Vector3D point;
 
-		PointLight(priori::Color c = 0xFFFFFF, double i = 1, priori::Point3D p = priori::Point3D(0, 0, 0));
+		PointLight(priori::Color c = 0xFFFFFF, double i = 1, priori::Vector3D p = priori::Vector3D{0, 0, 0, true});
 		PointLight(const PointLight &other);
 		~PointLight();
 

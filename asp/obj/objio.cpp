@@ -22,7 +22,7 @@ namespace asp{
 
 	Model readobj(string fileName){
 		Model model;
-		vector<Point> texels;
+		vector<Vector> texels;
 		vector<Vector3D> normals;
 		string activeMaterial;
 		ifstream file(fileName);
@@ -35,6 +35,7 @@ namespace asp{
 				if(command.compare("v") == 0){
 					model.vertices.emplace_back();
 					file >> model.vertices.back().position.x >> model.vertices.back().position.y >> model.vertices.back().position.z;
+					model.vertices.back().position.isPoint = true;
 				}
 				else if(command.compare("vt") == 0){
 					texels.emplace_back();
@@ -43,6 +44,7 @@ namespace asp{
 				else if(command.compare("vn") == 0){
 					normals.emplace_back();
 					file >> normals.back().x >> normals.back().y >> normals.back().z;
+					normals.back().isPoint = false;
 				}
 				else if(command[0] == 'f'){
 					model.triangles.emplace_back();
@@ -50,7 +52,7 @@ namespace asp{
 					for(int i = 0; i < 3; i++){
 						string s;
 						file >> s;
-						uint s1 = s.find('/'), s2 = s.rfind('/');
+						unsigned int s1 = s.find('/'), s2 = s.rfind('/');
 
 						int pIndex = stoi(s.substr(0, s1));
 						model.triangles.back().vertices[i] = pIndex > 0 ? pIndex-1 : model.vertices.size()+pIndex;

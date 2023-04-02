@@ -52,9 +52,9 @@ namespace asp{
 	}
 
 	void DirectionalLight::specularShade(Fragment &fragment){
-		Vector3D toCamera = Point3D(-(fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
-									-(fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
-									-1/fragment.position.z);
+		Vector3D toCamera = Vector3D{-(fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
+									 -(fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
+									 -1/fragment.position.z};
 		Vector3D reflect = fragment.normal*2*(fragment.normal*vector) - vector;
 		double d = -(reflect*toCamera)/(reflect.magnitude()*toCamera.magnitude());
 		if(d > 0)
@@ -65,7 +65,7 @@ namespace asp{
 		vector = transform*vector;
 	}
 
-	PointLight::PointLight(Color c, double i, Point3D p) : Light(c, i), point(p) {};
+	PointLight::PointLight(Color c, double i, Vector3D p) : Light(c, i), point(p) {};
 
 	PointLight::PointLight(const PointLight &other) :
 			Light(other.color, other.intensity),
@@ -79,9 +79,9 @@ namespace asp{
 	}
 
 	void PointLight::diffuseShade(Fragment &fragment){
-		Vector3D vector = (point-Point3D((fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
-										 (fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
-										 1/fragment.position.z)).normalize();
+		Vector3D vector = (point-Vector3D{(fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
+										  (fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
+										  1/fragment.position.z}).normalize();
 
 		double d = vector*fragment.normal;
 		if(d > 0)
@@ -89,13 +89,13 @@ namespace asp{
 	}
 
 	void PointLight::specularShade(Fragment &fragment){
-		Vector3D vector = (point-Point3D((fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
-										 (fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
-										 1/fragment.position.z)).normalize();
+		Vector3D vector = (point-Vector3D{(fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
+										  (fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
+										  1/fragment.position.z}).normalize();
 
-		Vector3D toCamera = Point3D(-(fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
-									-(fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
-									-1/fragment.position.z);
+		Vector3D toCamera = Vector3D{-(fragment.position.x-fragment.camera->viewPort.width/2)/(fragment.camera->focalLength*fragment.position.z),
+									 -(fragment.camera->viewPort.height/2-fragment.position.y)/(fragment.camera->focalLength*fragment.position.z),
+									 -1/fragment.position.z};
 		Vector3D reflect = fragment.normal*2*(fragment.normal*vector) - vector;
 		double d = (reflect*toCamera)/(reflect.magnitude()*toCamera.magnitude());
 		if(d > 0)

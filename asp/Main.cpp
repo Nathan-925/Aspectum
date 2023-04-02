@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cmath>
 #include <forward_list>
+#include <numbers>
 
 #include "Scene.h"
 #include "Model.h"
@@ -31,11 +32,11 @@ int main(){
 	Model model = readobj("mario/untitled.obj");
 	//Model model;
 	//model.vertices.emplace_back();
-	//model.vertices.back().position = Point3D(0, 0, 0);
+	//model.vertices.back().position = Vector3D{0, 0, 0, true};
 	//model.vertices.emplace_back();
-	//model.vertices.back().position = Point3D(1, 0, 0);
+	//model.vertices.back().position = Vector3D{1, 0, 0, true};
 	//model.vertices.emplace_back();
-	//model.vertices.back().position = Point3D(0, 1, 0);
+	//model.vertices.back().position = Vector3D{0, 1, 0, true};
 
 	for(Triangle &t: model.triangles){
 		t.material.illuminationModel = 2;
@@ -64,20 +65,20 @@ int main(){
 	DirectionalLight dLight;
 	dLight.color = 0x5500FF;
 	dLight.intensity = 0.3;
-	dLight.vector = Vector3D(1, -1, 1);
+	dLight.vector = Vector3D{1, -1, 1};
 	scene.lights.push_back(&dLight);
 
 	PointLight pLight;
 	pLight.color = 0xFFFF00;
 	pLight.intensity = 0.3;
-	pLight.point = Point3D(20, -20, 0);
+	pLight.point = Vector3D{20, -20, 0, true};
 	scene.lights.push_back(&pLight);
 
 	Instance i(&model);
 	i.transform *= translate(0, -70, 0);
 	i.transform *= scale(10, 10, 10);
 	//i.transform *= rotateX(M_PI/6);
-	i.transform *= rotateY(M_PI*7/6);
+	i.transform *= rotateY(numbers::pi*7/6);
 	//i.transform *= rotateZ(M_PI/6);
 	i.transform *= translate(0, 0, 1500);
 	scene.objects.push_back(&i);

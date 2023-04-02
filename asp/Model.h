@@ -21,8 +21,8 @@ namespace asp{
 class Texture;
 
 	struct Vertex{
-		priori::Point3D position;
-		priori::Point texel;
+		priori::Vector3D position;
+		priori::Vector texel;
 
 		Vertex operator+(Vertex other) const;
 		Vertex operator-(Vertex other) const;
@@ -55,8 +55,8 @@ class Texture;
 
 	struct Fragment{
 		Camera* camera;
-		priori::Point3D position;
-		priori::Point texel;
+		priori::Vector3D position;
+		priori::Vector texel;
 		priori::Vector3D normal;
 		priori::Color color;
 		Material material;

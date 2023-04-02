@@ -4,6 +4,7 @@
  *  Created on: Mar 31, 2023
  *      Author: Nathan
  */
+#include <numbers>
 #include <iostream>
 
 #include "Camera.h"
@@ -20,7 +21,7 @@ namespace asp{
 			depthInverse(new double*[width]),
 			viewPort(width, height),
 			settings(),
-			position(0, 0, 0),
+			position{0, 0, 0, true},
 			rx(0), ry(0), rz(0){
 		for(int i = 0; i < width; i++)
 			depthInverse[i] = new double[height];
@@ -37,7 +38,7 @@ namespace asp{
 	}
 
 	void Camera::setFOV(double fov){
-		focalLength = (viewPort.width-1)/(2*tan(fov*(M_PI/360)));
+		focalLength = (viewPort.width-1)/(2*tan(fov*(numbers::pi/360)));
 	}
 
 	void Camera::render(const Scene &scene){
@@ -63,7 +64,7 @@ namespace asp{
 			}
 
 			Light** lights = new Light*[scene.lights.size()];
-			for(uint i = 0; i < scene.lights.size(); i++){
+			for(unsigned int i = 0; i < scene.lights.size(); i++){
 				lights[i] = scene.lights[i]->copy();
 				lights[i]->transform(cameraMatrix);
 			}
@@ -75,11 +76,11 @@ namespace asp{
 
 			double x = sin(xAngle), y = sin(yAngle);
 
-			Plane cullingPlanes[] = {Plane(Vector3D(0, 0, 1), -1),
-									 Plane(Vector3D(x, 0, cos(xAngle)), 0),
-									 Plane(Vector3D(-x, 0, cos(xAngle)), 0),
-									 Plane(Vector3D(0, y, cos(yAngle)), 0),
-									 Plane(Vector3D(0, -y, cos(yAngle)), 0)};
+			Plane cullingPlanes[] = {Plane{Vector3D{0, 0, 1, false}, -1},
+									 Plane{Vector3D{x, 0, cos(xAngle), false}, 0},
+									 Plane{Vector3D{-x, 0, cos(xAngle), false}, 0},
+									 Plane{Vector3D{0, y, cos(yAngle), false}, 0},
+									 Plane{Vector3D{0, -y, cos(yAngle), false}, 0}};
 
 			for(Plane plane: cullingPlanes){
 				auto prev = triangles.before_begin();
@@ -88,7 +89,7 @@ namespace asp{
 					int culled[3];
 					int numCulled = 0;
 					for(int i = 0; i < 3; i++){
-						Point3D pos = vertices[t.vertices[i]].position;
+						Vector3D pos = vertices[t.vertices[i]].position;
 						if(plane.distance(pos) < 0)
 							culled[numCulled++] = i;
 						else
@@ -141,9 +142,9 @@ namespace asp{
 			cout << "culled" << endl;
 
 			for(Vertex &v: vertices){
-				v.position = Point3D((int)(viewPort.width/2+((v.position.x*focalLength)/v.position.z)),
-									 (int)(viewPort.height/2-((v.position.y*focalLength)/v.position.z)),
-									 1/v.position.z);
+				v.position = Vector3D{(double)((int)(viewPort.width/2+((v.position.x*focalLength)/v.position.z))),
+									  (double)((int)(viewPort.height/2-((v.position.y*focalLength)/v.position.z))),
+									  1/v.position.z, true};
 				v.texel *= v.position.z;
 			}
 			cout << "projected" << endl;
@@ -151,9 +152,9 @@ namespace asp{
 			if(settings->wireframe)
 				for(Triangle &triangle: triangles)
 					priori::drawTriangle(viewPort, triangle.material.diffuse,
-										 Point(vertices[triangle.vertices[0]].position.x, vertices[triangle.vertices[0]].position.y),
-										 Point(vertices[triangle.vertices[1]].position.x, vertices[triangle.vertices[1]].position.y),
-										 Point(vertices[triangle.vertices[2]].position.x, vertices[triangle.vertices[2]].position.y));
+										 Vector{vertices[triangle.vertices[0]].position.x, vertices[triangle.vertices[0]].position.y},
+										 Vector{vertices[triangle.vertices[1]].position.x, vertices[triangle.vertices[1]].position.y},
+										 Vector{vertices[triangle.vertices[2]].position.x, vertices[triangle.vertices[2]].position.y});
 			else
 				for(Triangle &triangle: triangles){
 					Fragment f0 = Fragment{this, vertices[triangle.vertices[0]].position, vertices[triangle.vertices[0]].texel, triangle.normals[0].normalize(), 0, triangle.material},
@@ -209,11 +210,11 @@ namespace asp{
 								}
 
 								if(settings->shading && triangle.material.illuminationModel != 0){
-									for(uint i = 0; i < scene.lights.size(); i++)
+									for(unsigned int i = 0; i < scene.lights.size(); i++)
 										lights[i]->diffuseShade(f);
 
 									if(settings->specular && triangle.material.illuminationModel >= 2)
-										for(uint i = 0; i < scene.lights.size(); i++)
+										for(unsigned int i = 0; i < scene.lights.size(); i++)
 											lights[i]->specularShade(f);
 								}
 								else
@@ -227,7 +228,7 @@ namespace asp{
 						}
 					}
 			}
-			for(uint i = 0; i < scene.lights.size(); i++)
+			for(unsigned int i = 0; i < scene.lights.size(); i++)
 				delete lights[i];
 			delete[] lights;
 		}

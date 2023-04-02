@@ -8,6 +8,9 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
+#include <vector>
+#include <forward_list>
+
 #include "Model.h"
 #include "Scene.h"
 
@@ -29,9 +32,10 @@ namespace asp{
 		double focalLength;
 		priori::Image viewPort;
 		RenderSettings* settings;
-		priori::Point3D position;
+		priori::Vector3D position;
 		double rx, ry, rz;
 		std::vector<void (*)(Vertex&)> vertexShaders;
+		std::vector<void (*)(std::vector<Vertex>&, std::forward_list<Triangle>&)> geometryShaders;
 		std::vector<void (*)(Fragment&)> fragmentShaders;
 
 		Camera(int width, int height);
