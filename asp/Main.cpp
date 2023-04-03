@@ -29,31 +29,31 @@ int main(){
 	Texture noeTexture(readbmp("noe.bmp"));
 	Texture skeeterTexture(readbmp("skeeter.bmp"));
 
-	Model model = readobj("mario/untitled.obj");
-	//Model model;
-	//model.vertices.emplace_back();
-	//model.vertices.back().position = Vector3D{0, 0, 0, true};
-	//model.vertices.emplace_back();
-	//model.vertices.back().position = Vector3D{1, 0, 0, true};
-	//model.vertices.emplace_back();
-	//model.vertices.back().position = Vector3D{0, 1, 0, true};
+	//Model model = readobj("mario/untitled.obj");
+	Model model;
+	model.vertices.emplace_back();
+	model.vertices.back().position = Vector3D{0, 0, 0, true};
+	model.vertices.emplace_back();
+	model.vertices.back().position = Vector3D{1, 0, 0, true};
+	model.vertices.emplace_back();
+	model.vertices.back().position = Vector3D{0, 1, 0, true};
 
-	for(Triangle &t: model.triangles){
-		t.material.illuminationModel = 2;
-		t.material.ambient = t.material.diffuse;
-		//t.material.diffuse = 0xFFFFFF;
-		t.material.specular = t.material.diffuse;
-		t.material.shine = 10;
-		//t.material.ambientTexture = &noeTexture;
-		//t.material.diffuseTexture = &noeTexture;
-		//t.material.specularTexture = &noeTexture;
-	}
+	//for(Triangle &t: model.triangles){
+	//	t.material.illuminationModel = 2;
+	//	t.material.ambient = t.material.diffuse;
+	//	//t.material.diffuse = 0xFFFFFF;
+	//	t.material.specular = t.material.diffuse;
+	//	t.material.shine = 10;
+	//	//t.material.ambientTexture = &noeTexture;
+	//	//t.material.diffuseTexture = &noeTexture;
+	//	//t.material.specularTexture = &noeTexture;
+	//}
 
-	//model.triangles.emplace_back();
-	//model.triangles.back().vertices[0] = 0;
-	//model.triangles.back().vertices[1] = 1;
-	//model.triangles.back().vertices[2] = 2;
-	//model.triangles.back().material.diffuse = 0;
+	model.triangles.emplace_back();
+	model.triangles.back().vertices[0] = 0;
+	model.triangles.back().vertices[1] = 1;
+	model.triangles.back().vertices[2] = 2;
+	model.triangles.back().material.diffuse = 0;
 
 	Scene scene;
 
@@ -75,12 +75,12 @@ int main(){
 	scene.lights.push_back(&pLight);
 
 	Instance i(&model);
-	i.transform *= translate(0, -70, 0);
-	i.transform *= scale(10, 10, 10);
+	//i.transform *= translate(0, -70, 0);
+	i.transform *= scale(100, 100, 10);
 	//i.transform *= rotateX(M_PI/6);
-	i.transform *= rotateY(numbers::pi*7/6);
+	//i.transform *= rotateY(numbers::pi*7/6);
 	//i.transform *= rotateZ(M_PI/6);
-	i.transform *= translate(0, 0, 1500);
+	i.transform *= translate(0, 0, 30);
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);
@@ -89,7 +89,7 @@ int main(){
 	//camera.position = Point3D(-50, 0, 0);
 
 	RenderSettings settings;
-	settings.wireframe = false;
+	settings.wireframe = true;
 	settings.textures = true;
 	settings.shading = true;
 	settings.specular = true;

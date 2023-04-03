@@ -17,8 +17,15 @@
 
 namespace asp{
 
-	template<priori::Plane plane>
-	void cull(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles);
+	typedef void (*VertexShader)(std::vector<Vertex>&);
+	typedef void (*GeometryShader)(std::vector<Vertex>&, std::forward_list<Triangle>&);
+	typedef void (*FragmentShader)(Fragment&);
+
+	struct CullingPlane{
+		priori::Plane plane;
+
+		void cull(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles);
+	};
 
 	void colorNormals(Fragment &fragment);
 

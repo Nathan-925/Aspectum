@@ -4,6 +4,8 @@
  *  Created on: Mar 29, 2023
  *      Author: Nathan
  */
+#include <iterator>
+
 #include "Shaders.h"
 
 using namespace std;
@@ -11,8 +13,7 @@ using namespace priori;
 
 namespace asp{
 
-	template<priori::Plane plane>
-	void cull(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles){
+	void CullingPlane::cull(vector<Vertex> &vertices, forward_list<Triangle> &triangles){
 		auto prev = triangles.before_begin();
 		for(auto it = triangles.begin(); it != triangles.end(); prev = it++){
 			Triangle t = *it;
@@ -31,14 +32,14 @@ namespace asp{
 				it = prev;
 			}
 			else if(numCulled == 2){
-				(*it).vertices[culled[0]] = vertices.size();
+				it->vertices[culled[0]] = vertices.size();
 				vertices.push_back(
 						lerp<Vertex>(plane.intersectionPercent(vertices[t.vertices[culled[0]]].position,
 															   vertices[t.vertices[culled[2]]].position),
 						vertices[t.vertices[culled[0]]],
 						vertices[t.vertices[culled[2]]]));
 
-				(*it).vertices[culled[1]] = vertices.size();
+				it->vertices[culled[1]] = vertices.size();
 				vertices.push_back(
 						lerp<Vertex>(plane.intersectionPercent(vertices[t.vertices[culled[1]]].position,
 															   vertices[t.vertices[culled[2]]].position),
@@ -63,7 +64,7 @@ namespace asp{
 						vertices[t.vertices[culled[2]]]));
 
 				clipping.vertices[2] = t.vertices[culled[1]];
-				(*it).vertices[culled[0]] = clipping.vertices[1];
+				it->vertices[culled[0]] = clipping.vertices[1];
 
 				triangles.push_front(clipping);
 			}

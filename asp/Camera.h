@@ -13,6 +13,7 @@
 
 #include "Model.h"
 #include "Scene.h"
+#include "Shaders.h"
 
 #include "priori/Graphical.h"
 
@@ -28,15 +29,17 @@ namespace asp{
 	class Camera{
 		double** depthInverse;
 
+		Fragment project(const Vertex &vertex, priori::Vector3D normal, const Material &material);
+
 	public:
 		double focalLength;
 		priori::Image viewPort;
 		RenderSettings* settings;
 		priori::Vector3D position;
 		double rx, ry, rz;
-		std::vector<void (*)(Vertex&)> vertexShaders;
-		std::vector<void (*)(std::vector<Vertex>&, std::forward_list<Triangle>&)> geometryShaders;
-		std::vector<void (*)(Fragment&)> fragmentShaders;
+		std::vector<VertexShader> vertexShaders;
+		std::vector<GeometryShader> geometryShaders;
+		std::vector<FragmentShader> fragmentShaders;
 
 		Camera(int width, int height);
 		~Camera();

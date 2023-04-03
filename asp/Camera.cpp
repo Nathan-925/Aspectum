@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "Camera.h"
+#include "Shaders.h"
 
 #include "priori/Math.h"
 #include "priori/Math3D.h"
@@ -35,6 +36,18 @@ namespace asp{
 		for(int i = 0; i < viewPort.width; i++)
 			delete[] depthInverse[i];
 		delete[] depthInverse;
+	}
+
+	Fragment Camera::project(const Vertex &vertex, Vector3D normal, const Material &material){
+		cout << viewPort.width << " " << viewPort.height << endl;
+		return Fragment{this,
+						Vector3D{(double)((int)(viewPort.width/2+((vertex.position.x*focalLength)/vertex.position.z))),
+								 (double)((int)(viewPort.height/2-((vertex.position.y*focalLength)/vertex.position.z))),
+								 1/vertex.position.z, true},
+						vertex.texel/vertex.position.z,
+						normal.normalize(),
+						0,
+						material};
 	}
 
 	void Camera::setFOV(double fov){
@@ -76,90 +89,27 @@ namespace asp{
 
 			double x = sin(xAngle), y = sin(yAngle);
 
-			Plane cullingPlanes[] = {Plane{Vector3D{0, 0, 1, false}, -1},
-									 Plane{Vector3D{x, 0, cos(xAngle), false}, 0},
-									 Plane{Vector3D{-x, 0, cos(xAngle), false}, 0},
-									 Plane{Vector3D{0, y, cos(yAngle), false}, 0},
-									 Plane{Vector3D{0, -y, cos(yAngle), false}, 0}};
+			CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{0, 0, 1, false}, -1},
+									 	    CullingPlane{Vector3D{x, 0, cos(xAngle), false}, 0},
+											CullingPlane{Vector3D{-x, 0, cos(xAngle), false}, 0},
+											CullingPlane{Vector3D{0, y, cos(yAngle), false}, 0},
+											CullingPlane{Vector3D{0, -y, cos(yAngle), false}, 0}};
 
-			for(Plane plane: cullingPlanes){
-				auto prev = triangles.before_begin();
-				for(auto it = triangles.begin(); it != triangles.end(); prev = it++){
-					Triangle t = *it;
-					int culled[3];
-					int numCulled = 0;
-					for(int i = 0; i < 3; i++){
-						Vector3D pos = vertices[t.vertices[i]].position;
-						if(plane.distance(pos) < 0)
-							culled[numCulled++] = i;
-						else
-							culled[2-i+numCulled] = i;
-					}
-
-					if(numCulled == 3){
-						triangles.erase_after(prev);
-						it = prev;
-					}
-					else if(numCulled == 2){
-						(*it).vertices[culled[0]] = vertices.size();
-						vertices.push_back(
-								lerp<Vertex>(plane.intersectionPercent(vertices[t.vertices[culled[0]]].position,
-																	   vertices[t.vertices[culled[2]]].position),
-								vertices[t.vertices[culled[0]]],
-								vertices[t.vertices[culled[2]]]));
-
-						(*it).vertices[culled[1]] = vertices.size();
-						vertices.push_back(
-								lerp<Vertex>(plane.intersectionPercent(vertices[t.vertices[culled[1]]].position,
-																	   vertices[t.vertices[culled[2]]].position),
-								vertices[t.vertices[culled[1]]],
-								vertices[t.vertices[culled[2]]]));
-					}
-					else if(numCulled == 1){
-						Triangle clipping(t);
-
-						clipping.vertices[0] = vertices.size();
-						vertices.push_back(
-								lerp<Vertex>(plane.intersectionPercent(vertices[t.vertices[culled[0]]].position,
-																	   vertices[t.vertices[culled[1]]].position),
-								vertices[t.vertices[culled[0]]],
-								vertices[t.vertices[culled[1]]]));
-
-						clipping.vertices[1] = vertices.size();
-						vertices.push_back(
-								lerp<Vertex>(plane.intersectionPercent(vertices[t.vertices[culled[0]]].position,
-																	   vertices[t.vertices[culled[2]]].position),
-								vertices[t.vertices[culled[0]]],
-								vertices[t.vertices[culled[2]]]));
-
-						clipping.vertices[2] = t.vertices[culled[1]];
-						(*it).vertices[culled[0]] = clipping.vertices[1];
-
-						triangles.push_front(clipping);
-					}
-				}
-			}
+			for(CullingPlane plane: cullingPlanes)
+				plane.cull(vertices, triangles);
 			cout << "culled" << endl;
-
-			for(Vertex &v: vertices){
-				v.position = Vector3D{(double)((int)(viewPort.width/2+((v.position.x*focalLength)/v.position.z))),
-									  (double)((int)(viewPort.height/2-((v.position.y*focalLength)/v.position.z))),
-									  1/v.position.z, true};
-				v.texel *= v.position.z;
-			}
-			cout << "projected" << endl;
 
 			if(settings->wireframe)
 				for(Triangle &triangle: triangles)
 					priori::drawTriangle(viewPort, triangle.material.diffuse,
-										 Vector{vertices[triangle.vertices[0]].position.x, vertices[triangle.vertices[0]].position.y},
-										 Vector{vertices[triangle.vertices[1]].position.x, vertices[triangle.vertices[1]].position.y},
-										 Vector{vertices[triangle.vertices[2]].position.x, vertices[triangle.vertices[2]].position.y});
+										 project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.material).position,
+										 project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.material).position,
+										 project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.material).position);
 			else
 				for(Triangle &triangle: triangles){
-					Fragment f0 = Fragment{this, vertices[triangle.vertices[0]].position, vertices[triangle.vertices[0]].texel, triangle.normals[0].normalize(), 0, triangle.material},
-							 f1 = Fragment{this, vertices[triangle.vertices[1]].position, vertices[triangle.vertices[1]].texel, triangle.normals[1].normalize(), 0, triangle.material},
-							 f2 = Fragment{this, vertices[triangle.vertices[2]].position, vertices[triangle.vertices[2]].texel, triangle.normals[2].normalize(), 0, triangle.material};
+					Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.material),
+							 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.material),
+							 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.material);
 
 					if(f0.position.y > f1.position.y)
 						swap(f0, f1);
@@ -176,9 +126,27 @@ namespace asp{
 					forward_list<Fragment> l02 = lerp<Fragment>(0, f0, dy02, f2);
 					forward_list<Fragment> l12 = lerp<Fragment>(0, f1, dy12, f2);
 
-					auto it01 = l01.begin();
-					auto it02 = l02.begin();
-					auto it12 = l12.begin();
+					vector<forward_list<Fragment>> lines;
+					if(settings->wireframe){
+						lines.push_back(l01);
+						lines.push_back(l02);
+						lines.push_back(l12);
+					}
+					else{
+						auto it01 = l01.begin();
+						auto it02 = l02.begin();
+						auto it12 = l12.begin();
+
+						for(int i = 0; i <= dy02; i++){
+							Fragment f1 = *it02++;
+							Fragment f2 = i < dy01 ? *it01++ : *it12++;
+							if(f1.position.x > f2.position.x)
+								swap(f1, f2);
+							lines.push_back(lerp<Fragment>(f1.position.x, f1, f2.position.x, f2));
+						}
+					}
+
+
 
 					for(int i = 0; i <= dy02; i++){
 						Fragment f1 = *it02++;
