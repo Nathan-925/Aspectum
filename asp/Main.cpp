@@ -53,6 +53,9 @@ int main(){
 	model.triangles.back().vertices[0] = 0;
 	model.triangles.back().vertices[1] = 1;
 	model.triangles.back().vertices[2] = 2;
+	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
 	model.triangles.back().material.diffuse = 0;
 
 	Scene scene;
@@ -76,7 +79,7 @@ int main(){
 
 	Instance i(&model);
 	//i.transform *= translate(0, -70, 0);
-	i.transform *= scale(100, 100, 10);
+	i.transform *= scale(10, 10, 10);
 	//i.transform *= rotateX(M_PI/6);
 	//i.transform *= rotateY(numbers::pi*7/6);
 	//i.transform *= rotateZ(M_PI/6);
@@ -84,7 +87,7 @@ int main(){
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);
-	camera.fragmentShaders.push_back(colorNormals);
+	//camera.fragmentShaders.push_back(colorNormals);
 
 	//camera.position = Point3D(-50, 0, 0);
 

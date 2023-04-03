@@ -17,7 +17,7 @@
 
 namespace asp{
 
-	typedef void (*VertexShader)(std::vector<Vertex>&);
+	typedef void (*VertexShader)(Vertex&);
 	typedef void (*GeometryShader)(std::vector<Vertex>&, std::forward_list<Triangle>&);
 	typedef void (*FragmentShader)(Fragment&);
 

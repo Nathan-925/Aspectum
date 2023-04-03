@@ -5,6 +5,7 @@
  *      Author: Nathan
  */
 #include <iterator>
+#include <iostream>
 
 #include "Shaders.h"
 
@@ -27,6 +28,7 @@ namespace asp{
 					culled[2-i+numCulled] = i;
 			}
 
+			cout << numCulled << endl;
 			if(numCulled == 3){
 				triangles.erase_after(prev);
 				it = prev;
