@@ -31,7 +31,7 @@ int main(){
 	Texture noeTexture(readbmp("noe.bmp"));
 	Texture skeeterTexture(readbmp("skeeter.bmp"));
 
-	Model model = readobj("mario/untitled.obj");
+	Model model = readobj("cube/cube.obj");
 	//Model model;
 	//model.vertices.emplace_back();
 	//model.vertices.back().position = Vector3D{0, 0, 0, true};
@@ -52,7 +52,7 @@ int main(){
 		t.material.specular = t.material.diffuse;
 		t.material.shine = 10;
 		t.material.ambientTexture = t.material.diffuseTexture;
-		//t.material.diffuseTexture = &noeTexture;
+		//t.material.diffuseTexture = &skeeterTexture;
 		t.material.specularTexture = t.material.diffuseTexture;
 	}
 
@@ -75,33 +75,36 @@ int main(){
 	DirectionalLight dLight;
 	dLight.color = 0xFFFFFF;
 	dLight.intensity = 0.3;
-	dLight.vector = Vector3D{1, -1, 1};
+	dLight.vector = Vector3D{0, 0, 1};
 	scene.lights.push_back(&dLight);
 
 	PointLight pLight;
-	pLight.color = 0xFFFFFF;
+	pLight.color = 0xFFFF00;
 	pLight.intensity = 0.3;
 	pLight.point = Vector3D{20, -20, 0, true};
 	scene.lights.push_back(&pLight);
 
 	Instance i(&model);
-	i.transform *= translate(0, -75, 0);
-	i.transform *= scale(10, 10, 10);
-	i.transform *= rotateY(M_PI);
-	i.transform *= rotateX(M_PI/8);
+	//i.transform *= translate(0, -75, 0);
+	//i.transform *= scale(10, 10, 10);
+	//i.transform *= rotateX(M_PI/8);
+	//i.transform *= rotateY(M_PI);
 	//i.transform *= rotateZ(M_PI/6);
-	i.transform *= translate(0, 0, 1000);
+	i.transform *= translate(1.4, 0, 2);
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);
 	//camera.fragmentShaders.push_back(colorNormals);
 
-	//camera.position = Point3D(-50, 0, 0);
+	//camera.position = Vector3D{-70, 150, 70, true};
+	//camera.ry = M_PI/4;
+	//camera.rx = M_PI/6;
 
 	RenderSettings settings;
 	settings.wireframe = false;
 	settings.textures = true;
-	settings.shading = true;
+	settings.textureMode = settings.BORDER;
+	settings.shading = false;
 	settings.specular = true;
 	camera.settings = &settings;
 
@@ -109,7 +112,11 @@ int main(){
 	cout << "end render" << endl;
 
 	settings.wireframe = true;
-	//camera.render(scene);
+	for(Triangle &t: model.triangles){
+		t.material.diffuse = 0xFF00FF;
+		t.material.diffuseTexture = nullptr;
+	}
+	camera.render(scene);
 
 	writebmp("test.bmp", camera.viewPort);
 	cout << "end program" << endl;

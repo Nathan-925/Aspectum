@@ -68,14 +68,30 @@ namespace asp{
 				it->normals[culled[0]] = clipping.normals[1];
 				it->texels[culled[0]] = clipping.texels[1];
 
+				clipping.material.diffuse *= Color(0xFF2222);
+				it->material.diffuse *= Color(0x22FF22);
+
 				triangles.push_front(clipping);
+			}
+		}
+	}
+
+	void cullBackFaces(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles){
+		auto prev = triangles.before_begin();
+		for(auto it = triangles.begin(); it != triangles.end(); prev = it++){
+			Vector3D v1 = vertices[it->vertices[1]].position-vertices[it->vertices[0]].position;
+			Vector3D v2 = vertices[it->vertices[2]].position-vertices[it->vertices[0]].position;
+			Vector3D n = v1^v2;
+			if(n*vertices[it->vertices[0]].position >= 0){
+				triangles.erase_after(prev);
+				it = prev;
 			}
 		}
 	}
 
 	void colorNormals(Fragment &fragment){
 		Vector3D normal = fragment.normal.normalize()*0.5;
-		fragment.color = fragment.normal.z > 0 ? 0 : Color((normal.x+0.5)*255, (normal.y+0.5)*255, (-normal.z+0.5)*255);
+		fragment.color = Color((normal.x+0.5)*255, (normal.y+0.5)*255, (-normal.z+0.5)*255);
 	}
 
 }

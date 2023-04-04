@@ -21,6 +21,7 @@ namespace asp{
 
 	struct RenderSettings{
 		bool wireframe = false;
+		bool backFaceCulling = true;
 		bool textures = true;
 		enum{
 			WRAP, BORDER

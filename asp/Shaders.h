@@ -27,6 +27,8 @@ namespace asp{
 		void cull(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles);
 	};
 
+	void cullBackFaces(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles);
+
 	void colorNormals(Fragment &fragment);
 
 }

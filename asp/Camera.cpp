@@ -57,9 +57,9 @@ namespace asp{
 		cout << "render" << endl;
 
 		TransformationMatrix cameraMatrix = translate(-position.x, -position.y, -position.z)*
-											rotateZ(rz)*
 											rotateY(ry)*
-											rotateX(rx);
+											rotateX(rx)*
+											rotateZ(rz);
 
 		for(Instance* instance: scene.objects){
 			vector<Vertex> vertices(instance->model->vertices);
@@ -87,6 +87,9 @@ namespace asp{
 					shader(v);
 
 			//culling
+			if(settings->backFaceCulling)
+				cullBackFaces(vertices, triangles);
+
 			double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
 			double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
 
@@ -163,6 +166,20 @@ namespace asp{
 
 							if(settings->textures){
 								f.texel /= f.position.z;
+								if(settings->textureMode == settings->WRAP){
+									double temp;
+									f.texel.x = modf(f.texel.x, &temp);
+									if(x < 0)
+										x += 1;
+									f.texel.y = modf(f.texel.y, &temp);
+									if(y < 0)
+										y += 1;
+								}
+								else{
+									f.texel.x = min(1.0, max(0.0, f.texel.x));
+									f.texel.y = min(1.0, max(0.0, f.texel.y));
+								}
+
 								if(triangle.material.ambientTexture != nullptr)
 									f.material.ambient *= triangle.material.ambientTexture->getColor(f.texel.x, f.texel.y);
 								if(triangle.material.diffuseTexture != nullptr)
