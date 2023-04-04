@@ -4,7 +4,7 @@
  *  Created on: Mar 31, 2023
  *      Author: Nathan
  */
-#include <numbers>
+#include <cmath>
 #include <iostream>
 
 #include "Camera.h"
@@ -38,29 +38,19 @@ namespace asp{
 		delete[] depthInverse;
 	}
 
-	Fragment Camera::project(const Vertex &vertex, Vector3D normal, const Material &material){
-		Fragment f{this,
-						Vector3D{(double)((int)(viewPort.width/2+((vertex.position.x*focalLength)/vertex.position.z))),
-								 (double)((int)(viewPort.height/2-((vertex.position.y*focalLength)/vertex.position.z))),
-								 1/vertex.position.z, true},
-						vertex.texel/vertex.position.z,
-						normal.normalize(),
-						0,
-						material};
-		cout << vertex.position.x << " " << vertex.position.y << " " << vertex.position.z << " -> ";
-		cout << f.position.x << " " << f.position.y << " " << f.position.z << endl;
+	Fragment Camera::project(const Vertex &vertex, Vector3D normal, priori::Vector texel, const Material &material){
 		return Fragment{this,
 						Vector3D{(double)((int)(viewPort.width/2+((vertex.position.x*focalLength)/vertex.position.z))),
 								 (double)((int)(viewPort.height/2-((vertex.position.y*focalLength)/vertex.position.z))),
 								 1/vertex.position.z, true},
-						vertex.texel/vertex.position.z,
+						texel/vertex.position.z,
 						normal.normalize(),
 						0,
 						material};
 	}
 
 	void Camera::setFOV(double fov){
-		focalLength = (viewPort.width-1)/(2*tan(fov*(numbers::pi/360)));
+		focalLength = (viewPort.width-1)/(2*tan(fov*(M_PI/360)));
 	}
 
 	void Camera::render(const Scene &scene){
@@ -92,6 +82,10 @@ namespace asp{
 			}
 			cout << "transformed" << endl;
 
+			for(VertexShader shader: vertexShaders)
+				for(Vertex &v: vertices)
+					shader(v);
+
 			//culling
 			double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
 			double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
@@ -104,22 +98,14 @@ namespace asp{
 											CullingPlane{Vector3D{0, y, cos(yAngle), false}, 0},
 											CullingPlane{Vector3D{0, -y, cos(yAngle), false}, 0}};
 
-			for(Vertex v: vertices)
-				cout << v.position.x << " " << v.position.y << " " << v.position.z << endl;
-
 			for(CullingPlane plane: cullingPlanes)
 				plane.cull(vertices, triangles);
 			cout << "culled" << endl;
 
-			for(Vertex v: vertices)
-				cout << v.position.x << " " << v.position.y << " " << v.position.z << endl;
-			for(Triangle t: triangles)
-				cout << t.vertices[0] << " " << t.vertices[1] << " " << t.vertices[2] << endl;
-
 			for(Triangle &triangle: triangles){
-				Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.material),
-						 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.material),
-						 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.material);
+				Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.texels[0], triangle.material),
+						 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.texels[1], triangle.material),
+						 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.texels[2], triangle.material);
 
 				if(f0.position.y > f1.position.y)
 					swap(f0, f1);
@@ -134,13 +120,16 @@ namespace asp{
 
 				forward_list<forward_list<Fragment>> lines;
 				if(settings->wireframe){
+					int dx01 = abs(f1.position.x-f0.position.x);
+					int dx02 = abs(f2.position.x-f0.position.x);
+					int dx12 = abs(f2.position.x-f1.position.x);
+
 					f0.normal = Vector3D{0, 0, -1};
 					f1.normal = Vector3D{0, 0, -1};
 					f2.normal = Vector3D{0, 0, -1};
-					lines.push_front(lerp<Fragment>(0, f0, dy01, f1));
-					lines.push_front(lerp<Fragment>(0, f0, dy02, f2));
-					lines.push_front(lerp<Fragment>(0, f1, dy12, f2));
-					cout << distance(lines.begin(), lines.end()) << endl;
+					lines.push_front(dy01 > dx01 ? lerp<Fragment>(0, f0, dy01, f1) : lerp<Fragment>(0, f0, dx01, f1));
+					lines.push_front(dy02 > dx02 ? lerp<Fragment>(0, f0, dy02, f2) : lerp<Fragment>(0, f0, dx02, f2));
+					lines.push_front(dy12 > dx12 ? lerp<Fragment>(0, f1, dy12, f2) : lerp<Fragment>(0, f1, dx12, f2));
 				}
 				else{
 					forward_list<Fragment> l01 = lerp<Fragment>(0, f0, dy01, f1);
@@ -157,21 +146,19 @@ namespace asp{
 						if(f1.position.x > f2.position.x)
 							swap(f1, f2);
 						lines.push_front(lerp<Fragment>(f1.position.x, f1, f2.position.x, f2));
-						cout << i << endl;
 					}
 				}
 
 				for(forward_list<Fragment> line: lines){
 					for(Fragment f: line){
 						int x = f.position.x, y = f.position.y;
-						cout << x << " " << y << " " << f.position.z << " " << depthInverse[x][y] << endl;
 
 						if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
 							cout << "out " << x << " " << y << endl;
 							throw "pixel drawn out of bounds";
 						}
 
-						if(f.normal.z < 0 && f.position.z > depthInverse[x][y]){
+						if(f.position.z >= depthInverse[x][y]){
 							depthInverse[x][y] = f.position.z;
 
 							if(settings->textures){

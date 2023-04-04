@@ -5,7 +5,6 @@
  *      Author: Nathan
  */
 #include <fstream>
-#include <iostream>
 
 #include "mtl.h"
 
@@ -17,8 +16,8 @@ using namespace priori;
 
 namespace asp{
 
-	unordered_map<std::string, Material> readmtl(string fileName){
-		unordered_map<std::string, Material> materials;
+	unordered_map<string, Material> readmtl(string fileName){
+		unordered_map<string, Material> materials;
 		ifstream file(fileName);
 		string active;
 
@@ -29,7 +28,9 @@ namespace asp{
 			if(!(command.empty() || command[0] == '#')){
 				if(command.compare("newmtl") == 0){
 					file >> active;
-					materials.insert(make_pair(active, Material()));
+					materials.insert(make_pair(active, Material{0xFFFFFF, 0xFFFFFF, 0xFFFFFF,
+																nullptr, nullptr, nullptr,
+																1, -1, 1}));
 				}
 				else if(command[0] == 'K'){
 					double r, g, b;
@@ -62,6 +63,8 @@ namespace asp{
 						materials[active].diffuseTexture = texture;
 					else if(destination.compare("Ks") == 0)
 						materials[active].specularTexture = texture;
+					else
+						delete texture;
 				}
 			}
 			file.ignore(numeric_limits<streamsize>::max(), '\n');

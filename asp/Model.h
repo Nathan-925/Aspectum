@@ -22,7 +22,6 @@ class Texture;
 
 	struct Vertex{
 		priori::Vector3D position;
-		priori::Vector texel;
 
 		Vertex operator+(Vertex other) const;
 		Vertex operator-(Vertex other) const;
@@ -77,14 +76,16 @@ class Texture;
 	struct Triangle{
 		int vertices[3];
 		priori::Vector3D normals[3];
+		priori::Vector texels[3];
 		Material material;
 	};
 
 	class Texture{
+		public:
 		priori::Image image;
 
-	public:
-		Texture(priori::Image image) : image(image) {};
+
+		Texture(priori::Image image, bool correctGamma = true);
 		priori::Color getColor(double x, double y);
 	};
 

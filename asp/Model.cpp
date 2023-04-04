@@ -6,57 +6,50 @@
  */
 #include "Model.h"
 
+using namespace std;
 using namespace priori;
 
 namespace asp{
 
 	Vertex Vertex::operator+(Vertex other) const{
 		other.position += position;
-		other.texel += texel;
 		return other;
 	}
 
 	Vertex Vertex::operator-(Vertex other) const{
 		other.position = position-other.position;
-		other.texel = texel-other.texel;
 		return other;
 	}
 
 	Vertex Vertex::operator+=(const Vertex &other){
 		position += other.position;
-		texel += other.texel;
 		return *this;
 	}
 
 	Vertex Vertex::operator-=(const Vertex &other){
 		position -= other.position;
-		texel -= other.texel;
 		return *this;
 	}
 
 	Vertex Vertex::operator*(const double &d) const{
 		Vertex out(*this);
 		out.position *= d;
-		out.texel *= d;
 		return out;
 	}
 
 	Vertex Vertex::operator/(const double &d) const{
 		Vertex out(*this);
 		out.position /= d;
-		out.texel /= d;
 		return out;
 	}
 
 	Vertex Vertex::operator*=(const double &d){
 		position *= d;
-		texel *= d;
 		return *this;
 	}
 
 	Vertex Vertex::operator/=(const double &d){
 		position /= d;
-		texel /= d;
 		return *this;
 	}
 
@@ -128,14 +121,20 @@ namespace asp{
 		return *this;
 	}
 
+	Texture::Texture(Image image, bool correctGamma) : image(image) {
+		if(correctGamma)
+			for(int i = 0; i < image.width; i++)
+				for(int j = 0; j < image.height; j++){
+					this->image[i][j].r = 255*pow(image[i][j].r/255.0, 2.2);
+					this->image[i][j].g = 255*pow(image[i][j].g/255.0, 2.2);
+					this->image[i][j].b = 255*pow(image[i][j].b/255.0, 2.2);
+				}
+	}
+
 	Color Texture::getColor(double x, double y){
-		x -= (int)x;
-		y -= (int)y;
-		if(x < 0)
-			x +=1;
-		if(y < 0)
-			y += 1;
-		return image.pixels[(int)round(x*(image.width-1))][(int)round(y*(image.height-1))];
+		x = min(1.0, max(0.0, x));
+		y = min(1.0, max(0.0, y));
+		return image.pixels[(int)round(x*(image.width-1))][image.height-1-(int)round(y*(image.height-1))];
 	}
 
 	Instance::Instance(Model* m) : model(m), transform() {};

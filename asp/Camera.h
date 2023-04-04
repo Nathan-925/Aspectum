@@ -22,6 +22,9 @@ namespace asp{
 	struct RenderSettings{
 		bool wireframe = false;
 		bool textures = true;
+		enum{
+			WRAP, BORDER
+		}textureMode;
 		bool shading = true;
 		bool specular = true;
 	};
@@ -29,7 +32,7 @@ namespace asp{
 	class Camera{
 		double** depthInverse;
 
-		Fragment project(const Vertex &vertex, priori::Vector3D normal, const Material &material);
+		Fragment project(const Vertex &vertex, priori::Vector3D normal, priori::Vector texel, const Material &material);
 
 	public:
 		double focalLength;

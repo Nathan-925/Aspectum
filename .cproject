@@ -32,8 +32,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Apriority}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Aspectum}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.620091413" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -std=c++20" valueType="string"/>
-								<option id="gnu.cpp.compiler.option.dialect.std.898853624" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++2a" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.other.other.620091413" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.dialect.std.898853624" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.dialect.flags.42272846" name="Other dialect flags" superClass="gnu.cpp.compiler.option.dialect.flags" useByScannerDiscovery="true" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.422350171" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
 							</tool>
