@@ -42,8 +42,8 @@ namespace asp{
 				it->vertices[culled[1]] = vertices.size();
 				double d2 = plane.intersectionPercent(vertices[t.vertices[culled[1]]].position, vertices[t.vertices[culled[2]]].position);
 				vertices.push_back(lerp<Vertex>(d2, vertices[t.vertices[culled[1]]], vertices[t.vertices[culled[2]]]));
-				it->normals[culled[1]] = lerp<Vector3D>(d1, t.normals[culled[1]], t.normals[culled[2]]);
-				it->texels[culled[1]] = lerp<Vector>(d1, t.texels[culled[1]], t.texels[culled[2]]);
+				it->normals[culled[1]] = lerp<Vector3D>(d2, t.normals[culled[1]], t.normals[culled[2]]);
+				it->texels[culled[1]] = lerp<Vector>(d2, t.texels[culled[1]], t.texels[culled[2]]);
 			}
 			else if(numCulled == 1){
 				Triangle clipping(t);
@@ -57,8 +57,8 @@ namespace asp{
 				clipping.vertices[1] = vertices.size();
 				double d2 = plane.intersectionPercent(vertices[t.vertices[culled[0]]].position, vertices[t.vertices[culled[2]]].position);
 				vertices.push_back(lerp<Vertex>(d2, vertices[t.vertices[culled[0]]], vertices[t.vertices[culled[2]]]));
-				clipping.normals[1] = lerp<Vector3D>(d1, t.normals[culled[0]], t.normals[culled[2]]);
-				clipping.texels[1] = lerp<Vector>(d1, t.texels[culled[0]], t.texels[culled[2]]);
+				clipping.normals[1] = lerp<Vector3D>(d2, t.normals[culled[0]], t.normals[culled[2]]);
+				clipping.texels[1] = lerp<Vector>(d2, t.texels[culled[0]], t.texels[culled[2]]);
 
 				clipping.vertices[2] = t.vertices[culled[1]];
 				clipping.normals[2] = t.normals[culled[1]];
@@ -67,9 +67,6 @@ namespace asp{
 				it->vertices[culled[0]] = clipping.vertices[1];
 				it->normals[culled[0]] = clipping.normals[1];
 				it->texels[culled[0]] = clipping.texels[1];
-
-				clipping.material.diffuse *= Color(0xFF2222);
-				it->material.diffuse *= Color(0x22FF22);
 
 				triangles.push_front(clipping);
 			}

@@ -31,7 +31,7 @@ int main(){
 	Texture noeTexture(readbmp("noe.bmp"));
 	Texture skeeterTexture(readbmp("skeeter.bmp"));
 
-	Model model = readobj("cube/cube.obj");
+	Model model = readobj("mario/untitled.obj");
 	//Model model;
 	//model.vertices.emplace_back();
 	//model.vertices.back().position = Vector3D{0, 0, 0, true};
@@ -87,10 +87,10 @@ int main(){
 	Instance i(&model);
 	//i.transform *= translate(0, -75, 0);
 	//i.transform *= scale(10, 10, 10);
-	//i.transform *= rotateX(M_PI/8);
-	//i.transform *= rotateY(M_PI);
-	//i.transform *= rotateZ(M_PI/6);
-	i.transform *= translate(1.4, 0, 2);
+	i.transform *= rotateX(-M_PI/8);
+	i.transform *= rotateY(M_PI*7/6);
+	//i.transform *= rotateZ(M_PI/8);
+	i.transform *= translate(0, -70, 150);
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);
@@ -104,7 +104,7 @@ int main(){
 	settings.wireframe = false;
 	settings.textures = true;
 	settings.textureMode = settings.BORDER;
-	settings.shading = false;
+	settings.shading = true;
 	settings.specular = true;
 	camera.settings = &settings;
 
@@ -112,11 +112,11 @@ int main(){
 	cout << "end render" << endl;
 
 	settings.wireframe = true;
-	for(Triangle &t: model.triangles){
-		t.material.diffuse = 0xFF00FF;
-		t.material.diffuseTexture = nullptr;
-	}
-	camera.render(scene);
+	//for(Triangle &t: model.triangles){
+	//	t.material.diffuse = 0xFF00FF;
+	//	t.material.diffuseTexture = nullptr;
+	//}
+	//camera.render(scene);
 
 	writebmp("test.bmp", camera.viewPort);
 	cout << "end program" << endl;
