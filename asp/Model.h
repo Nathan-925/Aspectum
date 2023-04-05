@@ -86,7 +86,7 @@ class Texture;
 
 
 		Texture(priori::Image image, bool correctGamma = true);
-		priori::Color getColor(double x, double y);
+		void shade(Fragment &fragment);
 	};
 
 	struct Model{

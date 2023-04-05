@@ -79,7 +79,7 @@ int main(){
 	scene.lights.push_back(&dLight);
 
 	PointLight pLight;
-	pLight.color = 0xFFFF00;
+	pLight.color = 0xFFFFFF;
 	pLight.intensity = 0.3;
 	pLight.point = Vector3D{20, -20, 0, true};
 	scene.lights.push_back(&pLight);

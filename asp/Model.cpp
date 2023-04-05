@@ -131,7 +131,7 @@ namespace asp{
 				}
 	}
 
-	Color Texture::getColor(double x, double y){
+	void Texture::shade(Fragment &fragment){
 		x = min(1.0, max(0.0, x));
 		y = min(1.0, max(0.0, y));
 		return image.pixels[(int)round(x*(image.width-1))][image.height-1-(int)round(y*(image.height-1))];
