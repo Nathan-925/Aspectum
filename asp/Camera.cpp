@@ -117,16 +117,18 @@ namespace asp{
 				if(f1.position.y > f2.position.y)
 					swap(f1, f2);
 
+				int dx01 = abs(f1.position.x-f0.position.x);
+				int dx02 = abs(f2.position.x-f0.position.x);
+				int dx12 = abs(f2.position.x-f1.position.x);
+
 				int dy01 = f1.position.y-f0.position.y;
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
+				int width = max(dy02, max(dx01, max(dx02, dx12)));
+
 				forward_list<forward_list<Fragment>> lines;
 				if(settings->wireframe){
-					int dx01 = abs(f1.position.x-f0.position.x);
-					int dx02 = abs(f2.position.x-f0.position.x);
-					int dx12 = abs(f2.position.x-f1.position.x);
-
 					f0.normal = Vector3D{0, 0, -1};
 					f1.normal = Vector3D{0, 0, -1};
 					f2.normal = Vector3D{0, 0, -1};
@@ -166,19 +168,6 @@ namespace asp{
 
 							if(settings->textures){
 								f.texel /= f.position.z;
-								if(settings->textureMode == settings->WRAP){
-									double temp;
-									f.texel.x = modf(f.texel.x, &temp);
-									if(x < 0)
-										x += 1;
-									f.texel.y = modf(f.texel.y, &temp);
-									if(y < 0)
-										y += 1;
-								}
-								else{
-									f.texel.x = min(1.0, max(0.0, f.texel.x));
-									f.texel.y = min(1.0, max(0.0, f.texel.y));
-								}
 
 								if(triangle.material.ambientTexture != nullptr)
 									f.material.ambient *= triangle.material.ambientTexture->getColor(f.texel.x, f.texel.y);

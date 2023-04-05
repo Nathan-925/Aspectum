@@ -121,20 +121,51 @@ namespace asp{
 		return *this;
 	}
 
-	Texture::Texture(Image image, bool correctGamma) : image(image) {
-		if(correctGamma)
-			for(int i = 0; i < image.width; i++)
-				for(int j = 0; j < image.height; j++){
-					this->image[i][j].r = 255*pow(image[i][j].r/255.0, 2.2);
-					this->image[i][j].g = 255*pow(image[i][j].g/255.0, 2.2);
-					this->image[i][j].b = 255*pow(image[i][j].b/255.0, 2.2);
+	Texture::Texture(Image image, TextureSettings* settings) : settings(settings){
+		if(image.width != image.height || (image.width&(image.width-1)) != 0)
+			throw "Texture is incorrect size";
+
+		images.push_back(image);
+		for(int i = 0; i < image.width; i++)
+			for(int j = 0; j < image.height; j++){
+				if(settings->correctGamma){
+					images.back()[i][j].r = 255*pow(image[i][j].r/255.0, 2.2);
+					images.back()[i][j].g = 255*pow(image[i][j].g/255.0, 2.2);
+					images.back()[i][j].b = 255*pow(image[i][j].b/255.0, 2.2);
 				}
+				else{
+					images.back()[i][j].r = 255*(image[i][j].r/255.0);
+					images.back()[i][j].g = 255*(image[i][j].g/255.0);
+					images.back()[i][j].b = 255*(image[i][j].b/255.0);
+				}
+			}
+
+		while(images.back().width > 1){
+			Image prev = images.back();
+			images.emplace_back(prev.width/2, prev.height);
+			for(int i = 0; i < images.back().width; i++)
+				for(int j = 0; j < images.back().height; j++)
+					images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
+												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
+		}
 	}
 
-	void Texture::shade(Fragment &fragment){
-		x = min(1.0, max(0.0, x));
-		y = min(1.0, max(0.0, y));
-		return image.pixels[(int)round(x*(image.width-1))][image.height-1-(int)round(y*(image.height-1))];
+	Color Texture::shade(double x, double y, int width){
+		int baseMap = log2(width);
+		if(settings->wrap){
+			double temp;
+			x = modf(x, &temp);
+			if(x < 0)
+				x += 1;
+			y = modf(y, &temp);
+			if(y < 0)
+				y += 1;
+		}
+		else{
+			x = min(1.0, max(0.0, x));
+			y = min(1.0, max(0.0, y));
+		}
+		return images[baseMap][(int)round(x*(images[baseMap].width-1))][images[baseMap].height-1-(int)round(y*(images[baseMap].height-1))];
 	}
 
 	Instance::Instance(Model* m) : model(m), transform() {};

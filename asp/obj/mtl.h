@@ -17,7 +17,7 @@
 
 namespace asp{
 
-	std::unordered_map<std::string, Material> readmtl(std::string fileName);
+	void readmtl(std::string fileName, Model &model, TextureSettings* textureSettings);
 	void writemtl(std::string fileName, std::unordered_map<std::string, Material> materials);
 
 }

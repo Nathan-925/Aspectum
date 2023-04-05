@@ -23,9 +23,7 @@ namespace asp{
 		bool wireframe = false;
 		bool backFaceCulling = true;
 		bool textures = true;
-		enum{
-			WRAP, BORDER
-		}textureMode;
+		TextureSettings textureSettings;
 		bool shading = true;
 		bool specular = true;
 	};
