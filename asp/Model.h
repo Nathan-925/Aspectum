@@ -95,7 +95,7 @@ class Texture;
 		TextureSettings* settings;
 
 		Texture(priori::Image image, TextureSettings* settings);
-		priori::Color shade(double x, double y, int width);
+		priori::Color shade(double x, double y);
 	};
 
 	struct Model{

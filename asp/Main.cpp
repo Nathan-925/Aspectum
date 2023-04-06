@@ -14,7 +14,7 @@
 #include "Lights.h"
 #include "Shapes.h"
 #include "Shaders.h"
-#include "obj/objio.h"
+#include "ResourceLoader.h"
 
 #include "priori/BMPLibrary.h"
 #include "priori/Math3D.h"
@@ -25,13 +25,26 @@ using namespace asp;
 
 int main(){
 
+	TextureSettings textureSettings;
+
+	RenderSettings settings;
+	settings.wireframe = false;
+	settings.textures = true;
+	settings.textureSettings = &textureSettings;
+	settings.shading = true;
+	settings.specular = true;
+
 	Color c(0.991102*255, 0.533276*255, 0.191202*255);
 	cout << (int)c.r << " " << (int)c.g << " " << (int)c.b << endl;
 
-	Texture noeTexture(readbmp("noe.bmp"));
-	Texture skeeterTexture(readbmp("skeeter.bmp"));
+	ResourceLoader loader;
+	loader.textureSettings = &textureSettings;
+	loader.textures.emplace("noe", readbmp("noe.bmp"));
+	loader.textures.emplace("skeeter", readbmp("skeeter.bmp"));
 
-	Model model = readobj("mario/untitled.obj");
+
+	loader.readobj("mario/untitled.obj");
+	Model* model = &loader.models["mario/untitled.obj"];
 	//Model model;
 	//model.vertices.emplace_back();
 	//model.vertices.back().position = Vector3D{0, 0, 0, true};
@@ -42,7 +55,7 @@ int main(){
 
 	//cout << hex << (uint32_t)model.materials["mario_face"].diffuse << " " << (uint32_t)model.materials["mario_eyes"].diffuseTexture->getColor(0, 0) << dec << endl;
 
-	for(Triangle &t: model.triangles){
+	for(Triangle &t: model->triangles){
 		t.material.illuminationModel = 2;
 		//if(t.material.diffuseTexture != nullptr){
 		//	t.material.diffuse = 0xFF00FF;
@@ -84,7 +97,7 @@ int main(){
 	pLight.point = Vector3D{20, -20, 0, true};
 	scene.lights.push_back(&pLight);
 
-	Instance i(&model);
+	Instance i(model);
 	//i.transform *= translate(0, -75, 0);
 	//i.transform *= scale(10, 10, 10);
 	i.transform *= rotateX(-M_PI/8);
@@ -94,19 +107,12 @@ int main(){
 	scene.objects.push_back(&i);
 
 	Camera camera(1000, 1000);
+	camera.settings = &settings;
 	//camera.fragmentShaders.push_back(colorNormals);
 
 	//camera.position = Vector3D{-70, 150, 70, true};
 	//camera.ry = M_PI/4;
 	//camera.rx = M_PI/6;
-
-	RenderSettings settings;
-	settings.wireframe = false;
-	settings.textures = true;
-	settings.textureMode = settings.BORDER;
-	settings.shading = true;
-	settings.specular = true;
-	camera.settings = &settings;
 
 	camera.render(scene);
 	cout << "end render" << endl;

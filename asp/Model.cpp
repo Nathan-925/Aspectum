@@ -150,8 +150,8 @@ namespace asp{
 		}
 	}
 
-	Color Texture::shade(double x, double y, int width){
-		int baseMap = log2(width);
+	Color Texture::shade(double x, double y){
+		int baseMap = 0;
 		if(settings->wrap){
 			double temp;
 			x = modf(x, &temp);
@@ -165,6 +165,11 @@ namespace asp{
 			x = min(1.0, max(0.0, x));
 			y = min(1.0, max(0.0, y));
 		}
+
+		if(settings->filtering == settings->BILINEAR){
+
+		}
+
 		return images[baseMap][(int)round(x*(images[baseMap].width-1))][images[baseMap].height-1-(int)round(y*(images[baseMap].height-1))];
 	}
 
