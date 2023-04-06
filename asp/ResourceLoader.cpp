@@ -4,6 +4,7 @@
  *  Created on: Apr 5, 2023
  *      Author: Nathan
  */
+#include <iostream>
 #include <fstream>
 
 #include "ResourceLoader.h"
@@ -14,6 +15,8 @@ using namespace std;
 using namespace priori;
 
 namespace asp{
+
+	ResourceLoader::ResourceLoader(TextureSettings* t) : textureSettings(t), textures(), materials(), models(){}
 
 	void ResourceLoader::readobj(string fileName){
 		Model model;
@@ -67,12 +70,13 @@ namespace asp{
 								normal :
 								normals[normalIndexes[i] > 0 ? normalIndexes[i]-1 : normals.size()+normalIndexes[i]];
 
-					model.triangles.back().material = model.materials[activeMaterial];
+					model.triangles.back().material = materials[activeMaterial];
 
 				}
 				else if(command.compare("mtllib") == 0){
 					string mtlName;
 					file >> mtlName;
+					cout << mtlName << endl;
 					readmtl(mtlName);
 				}
 				else if(command.compare("usemtl") == 0){
@@ -121,10 +125,13 @@ namespace asp{
 				else if(command.substr(0, 3).compare("map") == 0){
 					string textureFile;
 					file >> textureFile;
-					if(textureFile.substr(textureFile.length()-3).compare("bmp") != 0)
+					if(textureFile.substr(textureFile.length()-3).compare("bmp") != 0){
+						cout << "non bmp texture file" << endl;
 						throw "non bmp texture file";
+					}
 
-					textures.emplace(textureFile, Texture(readbmp(textureFile), textureSettings));
+					Texture t(readbmp(textureFile), textureSettings);
+					textures.emplace(textureFile, t);
 					string destination = command.substr(4);
 					if(destination.compare("Ka") == 0)
 						materials[active].ambientTexture = &textures.at(textureFile);

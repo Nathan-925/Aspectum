@@ -23,6 +23,8 @@ namespace asp{
 		std::unordered_map<std::string, Material> materials;
 		std::unordered_map<std::string, Model> models;
 
+		ResourceLoader(TextureSettings* t = nullptr);
+
 		void readobj(std::string filename);
 		void readmtl(std::string fileName);
 		void clear();

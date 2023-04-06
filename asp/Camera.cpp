@@ -170,11 +170,11 @@ namespace asp{
 								f.texel /= f.position.z;
 
 								if(triangle.material.ambientTexture != nullptr)
-									f.material.ambient *= triangle.material.ambientTexture->getColor(f.texel.x, f.texel.y);
+									f.material.ambient *= triangle.material.ambientTexture->shade(f.texel.x, f.texel.y, width, dy02);
 								if(triangle.material.diffuseTexture != nullptr)
-									f.material.diffuse *= triangle.material.diffuseTexture->getColor(f.texel.x, f.texel.y);
+									f.material.diffuse *= triangle.material.diffuseTexture->shade(f.texel.x, f.texel.y, width, dy02);
 								if(triangle.material.specularTexture != nullptr)
-									f.material.specular *= triangle.material.specularTexture->getColor(f.texel.x, f.texel.y);
+									f.material.specular *= triangle.material.specularTexture->shade(f.texel.x, f.texel.y, width, dy02);
 							}
 
 							if(!settings->wireframe && settings->shading && triangle.material.illuminationModel != 0){

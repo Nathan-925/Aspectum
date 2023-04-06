@@ -82,7 +82,7 @@ class Texture;
 
 	struct TextureSettings{
 		bool mipmapping = true;
-		bool correctGamma;
+		bool correctGamma = true;
 		enum{
 			NONE, BILINEAR, TRILINEAR
 		}filtering = BILINEAR;
@@ -95,15 +95,12 @@ class Texture;
 		TextureSettings* settings;
 
 		Texture(priori::Image image, TextureSettings* settings);
-		priori::Color shade(double x, double y);
+		priori::Color shade(double x, double y, int width, int height);
 	};
 
 	struct Model{
-		static std::unordered_map<std::string, Texture> textures;
-
 		std::vector<Vertex> vertices;
 		std::vector<Triangle> triangles;
-		std::unordered_map<std::string, Material> materials;
 	};
 
 	struct Instance{

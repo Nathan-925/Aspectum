@@ -4,6 +4,8 @@
  *  Created on: Mar 31, 2023
  *      Author: Nathan
  */
+#include <iostream>
+
 #include "Model.h"
 
 using namespace std;
@@ -122,8 +124,10 @@ namespace asp{
 	}
 
 	Texture::Texture(Image image, TextureSettings* settings) : settings(settings){
-		if(image.width != image.height || (image.width&(image.width-1)) != 0)
+		if((image.height&(image.height-1)) != 0 || (image.width&(image.width-1)) != 0){
+			cout << "Texture is incorrect size " << image.width << " " << image.height << endl;
 			throw "Texture is incorrect size";
+		}
 
 		images.push_back(image);
 		for(int i = 0; i < image.width; i++)
@@ -140,18 +144,23 @@ namespace asp{
 				}
 			}
 
-		while(images.back().width > 1){
+		while(min(images.back().width, images.back().height) > 1){
 			Image prev = images.back();
-			images.emplace_back(prev.width/2, prev.height);
+			images.emplace_back(prev.width/2, prev.height/2);
 			for(int i = 0; i < images.back().width; i++)
 				for(int j = 0; j < images.back().height; j++)
 					images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
 												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
+
+		for(Image i: images)
+			cout << i.width << " ";
+		cout << endl;
 	}
 
-	Color Texture::shade(double x, double y){
-		int baseMap = 0;
+	Color Texture::shade(double x, double y, int width, int height){
+		int baseMap = min((int)images.size()-1, (int)(0.5*log2(max(width, height))));
+		//cout << baseMap << " " << images.size() << endl;
 		if(settings->wrap){
 			double temp;
 			x = modf(x, &temp);
@@ -167,6 +176,21 @@ namespace asp{
 		}
 
 		if(settings->filtering == settings->BILINEAR){
+			double xPos, yPos;
+			double xFrac = modf(x*(images[baseMap].width-1), &xPos), yFrac = modf(images[baseMap].height-1-y*(images[baseMap].height-1), &yPos);
+			if(xPos >= images[baseMap].width-1){
+				xPos = images[baseMap].width-2;
+				xFrac = 1;
+			}
+			if(yPos >= images[baseMap].height-1){
+				yPos = images[baseMap].height-2;
+				yFrac = 1;
+			}
+			//cout << " " << x << " " << y << " " << xPos << " " << yPos << " " << xFrac << " " << yFrac << endl;
+			Color c1 = images[baseMap][(int)xPos][(int)yPos]*(1-xFrac) + images[baseMap][(int)xPos+1][(int)yPos]*xFrac;
+			Color c2 = images[baseMap][(int)xPos][(int)yPos+1]*(1-xFrac) + images[baseMap][(int)xPos+1][(int)yPos+1]*xFrac;
+
+			return c1*(1-yFrac) + c2*yFrac;
 
 		}
 

@@ -12,12 +12,12 @@
 #include "Model.h"
 #include "Camera.h"
 #include "Lights.h"
-#include "Shapes.h"
 #include "Shaders.h"
 #include "ResourceLoader.h"
 
 #include "priori/BMPLibrary.h"
 #include "priori/Math3D.h"
+#include "priori/Math.h"
 
 using namespace std;
 using namespace priori;
@@ -25,12 +25,13 @@ using namespace asp;
 
 int main(){
 
-	TextureSettings textureSettings;
+	Color c1(0), c2(0xFFFFFF);
+	cout << hex << (uint32_t)lerp<Color>(0.3, c1, c2) << " " << (uint32_t)lerp<Color>(0.3, c2, c1) << dec << endl;
 
 	RenderSettings settings;
 	settings.wireframe = false;
 	settings.textures = true;
-	settings.textureSettings = &textureSettings;
+	settings.textureSettings.filtering = settings.textureSettings.NONE;
 	settings.shading = true;
 	settings.specular = true;
 
@@ -38,12 +39,13 @@ int main(){
 	cout << (int)c.r << " " << (int)c.g << " " << (int)c.b << endl;
 
 	ResourceLoader loader;
-	loader.textureSettings = &textureSettings;
-	loader.textures.emplace("noe", readbmp("noe.bmp"));
-	loader.textures.emplace("skeeter", readbmp("skeeter.bmp"));
+	loader.textureSettings = &settings.textureSettings;
+	//loader.textures.emplace("noe", readbmp("noe.bmp"));
+	//loader.textures.emplace("skeeter", readbmp("skeeter.bmp"));
 
 
 	loader.readobj("mario/untitled.obj");
+	loader.readobj("cube/cube.obj");
 	Model* model = &loader.models["mario/untitled.obj"];
 	//Model model;
 	//model.vertices.emplace_back();
