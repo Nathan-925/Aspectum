@@ -32,7 +32,7 @@ int main(){
 	settings.wireframe = false;
 	settings.textures = true;
 	settings.textureSettings.mipmapping = true;
-	settings.textureSettings.filtering = settings.textureSettings.NONE;
+	settings.textureSettings.filtering = settings.textureSettings.TRILINEAR;
 	settings.shading = false;
 	settings.specular = true;
 
@@ -87,12 +87,19 @@ int main(){
 
 	Scene scene;
 
-	for(int i = 0; i < 120; i++){
-		Instance* inst = new Instance(&model);
-		inst->transform *= rotateX(M_PI/2);
-		inst->transform *= scale(4, 4, 4);
-		inst->transform *= translate(-2, 2, 4*i+6);
-		scene.objects.push_back(inst);
+	for(int i = 0; i < 1; i++){
+		//Instance* inst = new Instance(&model);
+		//inst->transform *= rotateX(M_PI/2);
+		//inst->transform *= scale(4, 4, 4);
+		//inst->transform *= translate(-2, 2, 4*i+6);
+		//scene.objects.push_back(inst);
+
+		Instance* inst2 = new Instance(&model);
+		inst2->transform *= rotateX(M_PI/2);
+		inst2->transform *= rotateY(M_PI);
+		inst2->transform *= scale(4, 4, 4);
+		inst2->transform *= translate(2, 2, 4*i+2);
+		scene.objects.push_back(inst2);
 	}
 
 	Light aLight;

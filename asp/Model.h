@@ -90,6 +90,8 @@ class Texture;
 	};
 
 	class Texture{
+		priori::Color bilinear(int layer, double x, double y);
+
 		public:
 		std::vector<priori::Image> images;
 		TextureSettings* settings;

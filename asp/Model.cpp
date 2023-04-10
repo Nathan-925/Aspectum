@@ -144,27 +144,38 @@ namespace asp{
 				}
 			}
 
-		Color c = 0;
 		while(min(images.back().width, images.back().height) > 1){
 			Image prev = images.back();
 			images.emplace_back(prev.width/2, prev.height/2);
 			for(int i = 0; i < images.back().width; i++)
 				for(int j = 0; j < images.back().height; j++)
-					//images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
-												  //average(prev[i*2][j*2], prev[i*2+1][j*2]));
-					images.back()[i][j] = c;
-			c.r += 20;
+					images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
+												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
 	}
 
+	Color Texture::bilinear(int layer, double x, double y){
+		double xPos, yPos;
+		double xFrac = modf(x*(images[layer].width-1), &xPos), yFrac = modf(images[layer].height-1-y*(images[layer].height-1), &yPos);
+		if(xPos >= images[layer].width-1){
+			xPos = images[layer].width-2;
+			xFrac = 1;
+		}
+		if(yPos >= images[layer].height-1){
+			yPos = images[layer].height-2;
+			yFrac = 1;
+		}
+		return lerp<Color>(yFrac,
+				lerp<Color>(xFrac, images[layer][(int)xPos][(int)yPos], images[layer][(int)xPos+1][(int)yPos]),
+				lerp<Color>(xFrac, images[layer][(int)xPos][(int)yPos+1], images[layer][(int)xPos+1][(int)yPos+1]));
+	}
+
 	Color Texture::shade(double x, double y, Vector dx, Vector dy){
-		//cout << dx.x << " " << dx.y << endl;
-		double p = max(sqrt(dx.x*dx.x + dx.y*dx.y), sqrt(dy.x*dy.x + dy.y*dy.y));
-		int baseMap = settings->mipmapping ?
-				max(0, (int)(images.size()-round(abs(log2(p))))) :
+		double p = max(dx.x*dx.x + dx.y*dx.y, dy.x*dy.x + dy.y*dy.y);
+		double baseMap = settings->mipmapping ?
+				images.size()-min((double)images.size(), log2(p)/2) :
 				0;
 
-		cout << images[baseMap].width << endl;;
 		if(settings->wrap){
 			double temp;
 			x = modf(x, &temp);
@@ -179,24 +190,19 @@ namespace asp{
 			y = min(1.0, max(0.0, y));
 		}
 
-		if(settings->filtering == settings->BILINEAR){
-			double xPos, yPos;
-			double xFrac = modf(x*(images[baseMap].width-1), &xPos), yFrac = modf(images[baseMap].height-1-y*(images[baseMap].height-1), &yPos);
-			if(xPos >= images[baseMap].width-1){
-				xPos = images[baseMap].width-2;
-				xFrac = 1;
+		if(settings->filtering == settings->TRILINEAR && settings->mipmapping && images.size() > 1){
+			double mapFrac = modf(baseMap, &baseMap);
+			if(baseMap >= images.size()-1){
+				baseMap = images.size()-1;
+				mapFrac = 1;
 			}
-			if(yPos >= images[baseMap].height-1){
-				yPos = images[baseMap].height-2;
-				yFrac = 1;
-			}
-			//cout << " " << x << " " << y << " " << xPos << " " << yPos << " " << xFrac << " " << yFrac << endl;
-			Color c1 = images[baseMap][(int)xPos][(int)yPos]*(1-xFrac) + images[baseMap][(int)xPos+1][(int)yPos]*xFrac;
-			Color c2 = images[baseMap][(int)xPos][(int)yPos+1]*(1-xFrac) + images[baseMap][(int)xPos+1][(int)yPos+1]*xFrac;
-
-			return c1*(1-yFrac) + c2*yFrac;
-
+			return lerp<Color>(mapFrac, bilinear(baseMap, x, y), bilinear(baseMap+1, x, y));
 		}
+		else
+			baseMap = round(baseMap);
+
+		if(settings->filtering == settings->BILINEAR)
+			return bilinear(baseMap, x, y);
 
 		return images[baseMap][(int)round(x*(images[baseMap].width-1))][images[baseMap].height-1-(int)round(y*(images[baseMap].height-1))];
 	}

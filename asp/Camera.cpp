@@ -118,6 +118,10 @@ namespace asp{
 				if(f1.position.y > f2.position.y)
 					swap(f1, f2);
 
+				cout << f0.position.x << " " << f0.position.y << endl;
+				cout << f1.position.x << " " << f1.position.y << endl;
+				cout << f2.position.x << " " << f2.position.y << endl;
+
 				int dx01 = abs(f1.position.x-f0.position.x);
 				int dx02 = abs(f2.position.x-f0.position.x);
 				int dx12 = abs(f2.position.x-f1.position.x);
@@ -126,15 +130,13 @@ namespace asp{
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
-				Fragment x1 = f0.position.x == f1.position.x ? f2 : f1;
-				Fragment y1 = f0.position.y == f1.position.y ? f2 : f1;
+				Fragment x1 = f0.texel.x == f1.texel.x ? f2 : f1;
+				Fragment y1 = f0.texel.y == f1.texel.y ? f2 : f1;
 
-				double dx = max(1.0, abs(x1.position.x-f0.position.x));
-				double dy = max(1.0, abs(y1.position.y-f0.position.y));
-				cout << "x- " << f0.position.x << " " << x1.position.x << " " << f1.position.x << " " << f2.position.x << " " << dx << endl;
-				cout << "y- " << f0.position.y << " " << y1.position.y << " " << f1.position.y << " " << f2.position.y << " " << dy << endl;
-				Vector dtx{abs((x1.texel.x-f0.texel.x)/dx), abs((x1.texel.y-f0.texel.y)/dx)};
-				Vector dty{abs((y1.texel.x-f0.texel.x)/dy), abs((y1.texel.y-f0.texel.y)/dy)};
+				double dx = abs(x1.position.x-f0.position.x);
+				double dy = abs(y1.position.y-f0.position.y);
+				Vector dtx = Vector{dx, dx}/max(1.0, abs(x1.texel.x/x1.position.z-f0.texel.x/f0.position.z));
+				Vector dty = Vector{dy, dy}/max(1.0, abs(y1.texel.y/y1.position.z-f0.texel.y/f0.position.z));
 
 				forward_list<forward_list<Fragment>> lines;
 				if(settings->wireframe){
