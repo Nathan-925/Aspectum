@@ -4,7 +4,6 @@
  *  Created on: Apr 5, 2023
  *      Author: Nathan
  */
-#include <iostream>
 #include <fstream>
 
 #include "ResourceLoader.h"
@@ -76,7 +75,6 @@ namespace asp{
 				else if(command.compare("mtllib") == 0){
 					string mtlName;
 					file >> mtlName;
-					cout << mtlName << endl;
 					readmtl(mtlName);
 				}
 				else if(command.compare("usemtl") == 0){
@@ -126,7 +124,6 @@ namespace asp{
 					string textureFile;
 					file >> textureFile;
 					if(textureFile.substr(textureFile.length()-3).compare("bmp") != 0){
-						cout << "non bmp texture file" << endl;
 						throw "non bmp texture file";
 					}
 

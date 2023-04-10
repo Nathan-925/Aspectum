@@ -41,7 +41,7 @@ namespace asp{
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, priori::Vector texel, const Material &material){
 		return Fragment{this,
 						Vector3D{(double)((int)(viewPort.width/2+((vertex.position.x*focalLength)/vertex.position.z))),
-								 (double)((int)(viewPort.height/2-((vertex.position.y*focalLength)/vertex.position.z))),
+								 (double)((int)(viewPort.height/2+((vertex.position.y*focalLength)/vertex.position.z))),
 								 1/vertex.position.z, true},
 						texel/vertex.position.z,
 						normal.normalize(),
@@ -93,13 +93,14 @@ namespace asp{
 			double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
 			double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
 
-			double x = sin(xAngle), y = sin(yAngle);
+			double x = cos(xAngle), y = cos(yAngle);
+			double zx = sin(xAngle), zy = sin(yAngle);
 
 			CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{0, 0, 1, false}, -1},
-									 	    CullingPlane{Vector3D{x, 0, cos(xAngle), false}, 0},
-											CullingPlane{Vector3D{-x, 0, cos(xAngle), false}, 0},
-											CullingPlane{Vector3D{0, y, cos(yAngle), false}, 0},
-											CullingPlane{Vector3D{0, -y, cos(yAngle), false}, 0}};
+									 	    CullingPlane{Vector3D{x, 0, zx, false}, 0},
+											CullingPlane{Vector3D{-x, 0, zx, false}, 0},
+											CullingPlane{Vector3D{0, y, zy, false}, 0},
+											CullingPlane{Vector3D{0, -y, zy, false}, 0}};
 
 			for(CullingPlane plane: cullingPlanes)
 				plane.cull(vertices, triangles);
@@ -125,7 +126,15 @@ namespace asp{
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
-				int width = max(dy02, max(dx01, max(dx02, dx12)));
+				Fragment x1 = f0.position.x == f1.position.x ? f2 : f1;
+				Fragment y1 = f0.position.y == f1.position.y ? f2 : f1;
+
+				double dx = max(1.0, abs(x1.position.x-f0.position.x));
+				double dy = max(1.0, abs(y1.position.y-f0.position.y));
+				cout << "x- " << f0.position.x << " " << x1.position.x << " " << f1.position.x << " " << f2.position.x << " " << dx << endl;
+				cout << "y- " << f0.position.y << " " << y1.position.y << " " << f1.position.y << " " << f2.position.y << " " << dy << endl;
+				Vector dtx{abs((x1.texel.x-f0.texel.x)/dx), abs((x1.texel.y-f0.texel.y)/dx)};
+				Vector dty{abs((y1.texel.x-f0.texel.x)/dy), abs((y1.texel.y-f0.texel.y)/dy)};
 
 				forward_list<forward_list<Fragment>> lines;
 				if(settings->wireframe){
@@ -170,11 +179,11 @@ namespace asp{
 								f.texel /= f.position.z;
 
 								if(triangle.material.ambientTexture != nullptr)
-									f.material.ambient *= triangle.material.ambientTexture->shade(f.texel.x, f.texel.y, width, dy02);
+									f.material.ambient *= triangle.material.ambientTexture->shade(f.texel.x, f.texel.y, dtx, dty);
 								if(triangle.material.diffuseTexture != nullptr)
-									f.material.diffuse *= triangle.material.diffuseTexture->shade(f.texel.x, f.texel.y, width, dy02);
+									f.material.diffuse *= triangle.material.diffuseTexture->shade(f.texel.x, f.texel.y, dtx, dty);
 								if(triangle.material.specularTexture != nullptr)
-									f.material.specular *= triangle.material.specularTexture->shade(f.texel.x, f.texel.y, width, dy02);
+									f.material.specular *= triangle.material.specularTexture->shade(f.texel.x, f.texel.y, dtx, dty);
 							}
 
 							if(!settings->wireframe && settings->shading && triangle.material.illuminationModel != 0){
