@@ -32,7 +32,7 @@ int main(){
 	settings.wireframe = false;
 	settings.textures = true;
 	settings.textureSettings.mipmapping = true;
-	settings.textureSettings.filtering = settings.textureSettings.TRILINEAR;
+	settings.textureSettings.filtering = settings.textureSettings.NONE;
 	settings.shading = false;
 	settings.specular = true;
 
@@ -85,8 +85,8 @@ int main(){
 	model.triangles.back().texels[1] = Vector{0, 1};
 	model.triangles.back().texels[2] = Vector{1, 0};
 	model.triangles.back().material.diffuse = 0xFFFFFF;
-	model.triangles.back().material.diffuseTexture = //&loader.textures.at("t.bmp");
-			new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
+	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
+			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
 
 	model.triangles.emplace_back();
 	model.triangles.back().vertices[0] = 3;
@@ -108,11 +108,11 @@ int main(){
 	//i.transform *= scale(2, 2, 1);
 	//scene.objects.push_back(&i);
 
-	for(int i = 0; i < 60; i++){
+	for(int i = 0; i < 1; i++){
 		Instance* inst = new Instance(&model);
 		inst->transform *= rotateX(-M_PI/2);
 		inst->transform *= scale(4, 4, 4);
-		inst->transform *= translate(-2, -2, 4*i+2);
+		inst->transform *= translate(-2, -2, 4*i+3);
 		scene.objects.push_back(inst);
 
 		//Instance* inst2 = new Instance(&model);

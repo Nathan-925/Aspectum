@@ -160,24 +160,30 @@ namespace asp{
 						lines.push_back(lerp<Fragment>(f1.position.x, f1, f2.position.x, f2));
 					}
 
-					//rows sheared
 					if(settings->textures){
-						double dx, dy;
-						for(unsigned int i = 0; i < lines.size(); i++){
-							for(unsigned int j = 0; j < lines[i].size(); j++){
-								if(j+1 < lines[i].size() && i+1 < lines.size() && j < lines[i].size()){
-									dx = 1/abs(lines[i+1][j+1].texel.x/lines[i+1][j+1].position.z - lines[i][j].texel.x/lines[i][j].position.z);
-								//if(i+1 < lines.size() && j < lines[i].size())
-									dy = 1/abs(lines[i+1][j+1].texel.y/lines[i+1][j+1].position.z - lines[i][j].texel.y/lines[i][j].position.z);
+						Vector dx, dy;
+						for(unsigned int i = 0; i < lines.size()-1; i++){
+							auto it1 = lines[i].begin(), it2 = lines[i+1].begin();
+							while(it2 < lines[i+1].end() && it2->position.x < it1->position.x)
+								it2++;
+							while(it1 < lines[i].end()){
+								if(it1+1 < lines[i].end())
+									dx = (it1+1)->texel/(it1+1)->position.z - it1->texel/it1->position.z;
+								if(it2->position.x == it1->position.x && it2 < lines[i+1].end()){
+									//cout << it1->position.x << " " << it2->position.x << endl;
+									dy = it2->texel/it2->position.z - it1->texel/it1->position.z;
+									it2++;
 								}
 
-								lines[i][j].texel /= lines[i][j].position.z;
-								if(lines[i][j].material.ambientTexture != nullptr)
-									lines[i][j].material.ambient *= lines[i][j].material.ambientTexture->shade(lines[i][j].texel.x, lines[i][j].texel.y, dx, dy);
-								if(lines[i][j].material.diffuseTexture != nullptr)
-									lines[i][j].material.diffuse *= lines[i][j].material.diffuseTexture->shade(lines[i][j].texel.x, lines[i][j].texel.y, dx, dy);
-								if(lines[i][j].material.specularTexture != nullptr)
-									lines[i][j].material.specular *= lines[i][j].material.specularTexture->shade(lines[i][j].texel.x, lines[i][j].texel.y, dx, dy);
+								it1->texel /= it1->position.z;
+								if(it1->material.ambientTexture != nullptr)
+									it1->material.ambient *= it1->material.ambientTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
+								if(it1->material.diffuseTexture != nullptr)
+									it1->material.diffuse *= it1->material.diffuseTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
+								if(it1->material.specularTexture != nullptr)
+									it1->material.specular *= it1->material.specularTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
+
+								it1++;
 							}
 						}
 					}

@@ -144,13 +144,17 @@ namespace asp{
 				}
 			}
 
-		while(min(images.back().width, images.back().height) > 1){
+		Color c[] = {0, 0xFF, 0xFF00, 0xFF0000, 0xFFFF, 0xFFFF00, 0xFF00FF};
+		int ci = 0;
+		while(min(images.back().width, images.back().height) > 2){
 			Image prev = images.back();
 			images.emplace_back(prev.width/2, prev.height/2);
 			for(int i = 0; i < images.back().width; i++)
 				for(int j = 0; j < images.back().height; j++)
-					images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
-												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
+					//images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
+												  //average(prev[i*2][j*2], prev[i*2+1][j*2]));
+					images.back()[i][j] = c[ci%7];
+			ci++;
 		}
 	}
 
@@ -171,12 +175,13 @@ namespace asp{
 				lerp<Color>(xFrac, images[layer][(int)xPos][(int)yPos+1], images[layer][(int)xPos+1][(int)yPos+1]));
 	}
 
-	Color Texture::shade(double x, double y, double dx, double dy){
-		double p = max(abs(dx), abs(dy));
+	Color Texture::shade(double x, double y, Vector dx, Vector dy){
+		double p = sqrt(max(dx.x*dx.x+dx.y*dx.y, dy.x*dy.x+dy.y*dy.y));
+		//cout << settings->mipmapping << endl;
 		double baseMap = settings->mipmapping ?
 				images.size()-min((double)images.size(), abs(log2(p))) :
 				0;
-		cout << dx << " " << dy << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
+		cout << 1/dx.x << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
 		//cout << baseMap << " " << images.size() << endl;
 
 		if(settings->wrap){
