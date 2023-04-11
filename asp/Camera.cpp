@@ -93,14 +93,14 @@ namespace asp{
 			double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
 			double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
 
-			double x = cos(xAngle), y = cos(yAngle);
-			double zx = sin(xAngle), zy = sin(yAngle);
+			double xCos = cos(xAngle), yCos = cos(yAngle);
+			double xSin = sin(xAngle), ySin = sin(yAngle);
 
 			CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{0, 0, 1, false}, -1},
-									 	    CullingPlane{Vector3D{x, 0, zx, false}, 0},
-											CullingPlane{Vector3D{-x, 0, zx, false}, 0},
-											CullingPlane{Vector3D{0, y, zy, false}, 0},
-											CullingPlane{Vector3D{0, -y, zy, false}, 0}};
+									 	    CullingPlane{Vector3D{xCos, 0, xSin, false}, 0},
+											CullingPlane{Vector3D{-xCos, 0, xSin, false}, 0},
+											CullingPlane{Vector3D{0, yCos, ySin, false}, 0},
+											CullingPlane{Vector3D{0, -yCos, ySin, false}, 0}};
 
 			for(CullingPlane plane: cullingPlanes)
 				plane.cull(vertices, triangles);
@@ -118,10 +118,6 @@ namespace asp{
 				if(f1.position.y > f2.position.y)
 					swap(f1, f2);
 
-				cout << f0.position.x << " " << f0.position.y << endl;
-				cout << f1.position.x << " " << f1.position.y << endl;
-				cout << f2.position.x << " " << f2.position.y << endl;
-
 				int dx01 = abs(f1.position.x-f0.position.x);
 				int dx02 = abs(f2.position.x-f0.position.x);
 				int dx12 = abs(f2.position.x-f1.position.x);
@@ -138,19 +134,19 @@ namespace asp{
 				Vector dtx = Vector{dx, dx}/max(1.0, abs(x1.texel.x/x1.position.z-f0.texel.x/f0.position.z));
 				Vector dty = Vector{dy, dy}/max(1.0, abs(y1.texel.y/y1.position.z-f0.texel.y/f0.position.z));
 
-				forward_list<forward_list<Fragment>> lines;
+				vector<vector<Fragment>> lines;
 				if(settings->wireframe){
 					f0.normal = Vector3D{0, 0, -1};
 					f1.normal = Vector3D{0, 0, -1};
 					f2.normal = Vector3D{0, 0, -1};
-					lines.push_front(dy01 > dx01 ? lerp<Fragment>(0, f0, dy01, f1) : lerp<Fragment>(0, f0, dx01, f1));
-					lines.push_front(dy02 > dx02 ? lerp<Fragment>(0, f0, dy02, f2) : lerp<Fragment>(0, f0, dx02, f2));
-					lines.push_front(dy12 > dx12 ? lerp<Fragment>(0, f1, dy12, f2) : lerp<Fragment>(0, f1, dx12, f2));
+					lines.push_back(dy01 > dx01 ? lerp<Fragment>(0, f0, dy01, f1) : lerp<Fragment>(0, f0, dx01, f1));
+					lines.push_back(dy02 > dx02 ? lerp<Fragment>(0, f0, dy02, f2) : lerp<Fragment>(0, f0, dx02, f2));
+					lines.push_back(dy12 > dx12 ? lerp<Fragment>(0, f1, dy12, f2) : lerp<Fragment>(0, f1, dx12, f2));
 				}
 				else{
-					forward_list<Fragment> l01 = lerp<Fragment>(0, f0, dy01, f1);
-					forward_list<Fragment> l02 = lerp<Fragment>(0, f0, dy02, f2);
-					forward_list<Fragment> l12 = lerp<Fragment>(0, f1, dy12, f2);
+					vector<Fragment> l01 = lerp<Fragment>(0, f0, dy01, f1);
+					vector<Fragment> l02 = lerp<Fragment>(0, f0, dy02, f2);
+					vector<Fragment> l12 = lerp<Fragment>(0, f1, dy12, f2);
 
 					auto it01 = l01.begin();
 					auto it02 = l02.begin();
@@ -161,11 +157,33 @@ namespace asp{
 						Fragment f2 = i < dy01 ? *it01++ : *it12++;
 						if(f1.position.x > f2.position.x)
 							swap(f1, f2);
-						lines.push_front(lerp<Fragment>(f1.position.x, f1, f2.position.x, f2));
+						lines.push_back(lerp<Fragment>(f1.position.x, f1, f2.position.x, f2));
+					}
+
+					//rows sheared
+					if(settings->textures){
+						double dx, dy;
+						for(unsigned int i = 0; i < lines.size(); i++){
+							for(unsigned int j = 0; j < lines[i].size(); j++){
+								if(j+1 < lines[i].size() && i+1 < lines.size() && j < lines[i].size()){
+									dx = 1/abs(lines[i+1][j+1].texel.x/lines[i+1][j+1].position.z - lines[i][j].texel.x/lines[i][j].position.z);
+								//if(i+1 < lines.size() && j < lines[i].size())
+									dy = 1/abs(lines[i+1][j+1].texel.y/lines[i+1][j+1].position.z - lines[i][j].texel.y/lines[i][j].position.z);
+								}
+
+								lines[i][j].texel /= lines[i][j].position.z;
+								if(lines[i][j].material.ambientTexture != nullptr)
+									lines[i][j].material.ambient *= lines[i][j].material.ambientTexture->shade(lines[i][j].texel.x, lines[i][j].texel.y, dx, dy);
+								if(lines[i][j].material.diffuseTexture != nullptr)
+									lines[i][j].material.diffuse *= lines[i][j].material.diffuseTexture->shade(lines[i][j].texel.x, lines[i][j].texel.y, dx, dy);
+								if(lines[i][j].material.specularTexture != nullptr)
+									lines[i][j].material.specular *= lines[i][j].material.specularTexture->shade(lines[i][j].texel.x, lines[i][j].texel.y, dx, dy);
+							}
+						}
 					}
 				}
 
-				for(forward_list<Fragment> line: lines){
+				for(vector<Fragment> line: lines){
 					for(Fragment f: line){
 						int x = f.position.x, y = f.position.y;
 
@@ -176,17 +194,6 @@ namespace asp{
 
 						if(f.position.z >= depthInverse[x][y]){
 							depthInverse[x][y] = f.position.z;
-
-							if(settings->textures){
-								f.texel /= f.position.z;
-
-								if(triangle.material.ambientTexture != nullptr)
-									f.material.ambient *= triangle.material.ambientTexture->shade(f.texel.x, f.texel.y, dtx, dty);
-								if(triangle.material.diffuseTexture != nullptr)
-									f.material.diffuse *= triangle.material.diffuseTexture->shade(f.texel.x, f.texel.y, dtx, dty);
-								if(triangle.material.specularTexture != nullptr)
-									f.material.specular *= triangle.material.specularTexture->shade(f.texel.x, f.texel.y, dtx, dty);
-							}
 
 							if(!settings->wireframe && settings->shading && triangle.material.illuminationModel != 0){
 								for(unsigned int i = 0; i < scene.lights.size(); i++)

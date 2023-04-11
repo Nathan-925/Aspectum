@@ -55,6 +55,8 @@ int main(){
 	model.vertices.back().position = Vector3D{0, 1, 0, true};
 	model.vertices.emplace_back();
 	model.vertices.back().position = Vector3D{1, 0, 0, true};
+	model.vertices.emplace_back();
+	model.vertices.back().position = Vector3D{1, 1, 0, true};
 
 	//cout << hex << (uint32_t)model.materials["mario_face"].diffuse << " " << (uint32_t)model.materials["mario_eyes"].diffuseTexture->getColor(0, 0) << dec << endl;
 
@@ -83,23 +85,42 @@ int main(){
 	model.triangles.back().texels[1] = Vector{0, 1};
 	model.triangles.back().texels[2] = Vector{1, 0};
 	model.triangles.back().material.diffuse = 0xFFFFFF;
-	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
+	model.triangles.back().material.diffuseTexture = //&loader.textures.at("t.bmp");
+			new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
+
+	model.triangles.emplace_back();
+	model.triangles.back().vertices[0] = 3;
+	model.triangles.back().vertices[1] = 2;
+	model.triangles.back().vertices[2] = 1;
+	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	model.triangles.back().texels[0] = Vector{1, 1};
+	model.triangles.back().texels[1] = Vector{1, 0};
+	model.triangles.back().texels[2] = Vector{0, 1};
+	model.triangles.back().material.diffuse = 0xFFFFFF;
+	model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
 
 	Scene scene;
 
-	for(int i = 0; i < 1; i++){
-		//Instance* inst = new Instance(&model);
-		//inst->transform *= rotateX(M_PI/2);
-		//inst->transform *= scale(4, 4, 4);
-		//inst->transform *= translate(-2, 2, 4*i+6);
-		//scene.objects.push_back(inst);
+	//Instance i(&model);
+	//i.transform *= translate(-0.5, -0.5, 5);
+	//i.transform *= scale(2, 2, 1);
+	//scene.objects.push_back(&i);
 
-		Instance* inst2 = new Instance(&model);
-		inst2->transform *= rotateX(M_PI/2);
-		inst2->transform *= rotateY(M_PI);
-		inst2->transform *= scale(4, 4, 4);
-		inst2->transform *= translate(2, 2, 4*i+2);
-		scene.objects.push_back(inst2);
+	for(int i = 0; i < 60; i++){
+		Instance* inst = new Instance(&model);
+		inst->transform *= rotateX(-M_PI/2);
+		inst->transform *= scale(4, 4, 4);
+		inst->transform *= translate(-2, -2, 4*i+2);
+		scene.objects.push_back(inst);
+
+		//Instance* inst2 = new Instance(&model);
+		//inst2->transform *= rotateX(M_PI/2);
+		//inst2->transform *= rotateY(M_PI);
+		//inst2->transform *= scale(4, 4, 4);
+		//inst2->transform *= translate(2, 2, 4*i+2);
+		//scene.objects.push_back(inst2);
 	}
 
 	Light aLight;

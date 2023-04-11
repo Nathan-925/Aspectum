@@ -156,7 +156,7 @@ namespace asp{
 
 	Color Texture::bilinear(int layer, double x, double y){
 		double xPos, yPos;
-		double xFrac = modf(x*(images[layer].width-1), &xPos), yFrac = modf(images[layer].height-1-y*(images[layer].height-1), &yPos);
+		double xFrac = modf(x*images[layer].width, &xPos), yFrac = modf(images[layer].height-y*images[layer].height, &yPos);
 		if(xPos >= images[layer].width-1){
 			xPos = images[layer].width-2;
 			xFrac = 1;
@@ -165,16 +165,19 @@ namespace asp{
 			yPos = images[layer].height-2;
 			yFrac = 1;
 		}
+		//cout << x << " " << y << " " << xPos << " " << yPos << " " << layer << " " << images[layer].width << endl;
 		return lerp<Color>(yFrac,
 				lerp<Color>(xFrac, images[layer][(int)xPos][(int)yPos], images[layer][(int)xPos+1][(int)yPos]),
 				lerp<Color>(xFrac, images[layer][(int)xPos][(int)yPos+1], images[layer][(int)xPos+1][(int)yPos+1]));
 	}
 
-	Color Texture::shade(double x, double y, Vector dx, Vector dy){
-		double p = max(dx.x*dx.x + dx.y*dx.y, dy.x*dy.x + dy.y*dy.y);
+	Color Texture::shade(double x, double y, double dx, double dy){
+		double p = max(abs(dx), abs(dy));
 		double baseMap = settings->mipmapping ?
-				images.size()-min((double)images.size(), log2(p)/2) :
+				images.size()-min((double)images.size(), abs(log2(p))) :
 				0;
+		cout << dx << " " << dy << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
+		//cout << baseMap << " " << images.size() << endl;
 
 		if(settings->wrap){
 			double temp;
@@ -190,18 +193,17 @@ namespace asp{
 			y = min(1.0, max(0.0, y));
 		}
 
-		if(settings->filtering == settings->TRILINEAR && settings->mipmapping && images.size() > 1){
+		if(settings->filtering == settings->TRILINEAR && settings->mipmapping && images.size() > 1 && min(images[baseMap].width, images[baseMap].height) >= 4){
 			double mapFrac = modf(baseMap, &baseMap);
 			if(baseMap >= images.size()-1){
-				baseMap = images.size()-1;
+				baseMap = images.size()-2;
 				mapFrac = 1;
 			}
+			//cout << baseMap << " " << mapFrac << " " << images.size() << endl;
 			return lerp<Color>(mapFrac, bilinear(baseMap, x, y), bilinear(baseMap+1, x, y));
 		}
-		else
-			baseMap = round(baseMap);
 
-		if(settings->filtering == settings->BILINEAR)
+		if(settings->filtering == settings->BILINEAR && min(images[baseMap].width, images[baseMap].height) > 1)
 			return bilinear(baseMap, x, y);
 
 		return images[baseMap][(int)round(x*(images[baseMap].width-1))][images[baseMap].height-1-(int)round(y*(images[baseMap].height-1))];
