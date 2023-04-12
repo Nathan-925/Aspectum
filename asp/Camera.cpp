@@ -172,10 +172,14 @@ namespace asp{
 
 								cout << it1->position.x << " " << it2->position.x << endl;
 
-								if(it1 < lines[i].end() && it2 < lines[i+1].end())
-									dy = it2->texel/it2->position.z - (it1+((int)it2->position.x-(int)it1->position.x))->texel/(it1+((int)it2->position.x-(int)it1->position.x))->position.z;
+								if(it1 < lines[i].end() && it2 < lines[i+1].end()){
+									if(it1->position.x < it2->position.x)
+										dy = it2->texel/it2->position.z - (it1+((int)it2->position.x-(int)it1->position.x))->texel/(it1+((int)it2->position.x-(int)it1->position.x))->position.z;
+									else
+										dy = (it2+((int)it1->position.x-(int)it2->position.x))->texel/(it2+((int)it1->position.x-(int)it2->position.x))->position.z - it1->texel/it1->position.z;
+								}
 
-								if(it1 < lines[i].end()){
+								if(it1 < lines[i].end() && (it2 >= lines[i+1].end() || (int)it1->position.x <= (int)it2->position.x)){
 									it1->texel /= it1->position.z;
 									if(it1->material.ambientTexture != nullptr)
 										it1->material.ambient *= it1->material.ambientTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
@@ -183,11 +187,10 @@ namespace asp{
 										it1->material.diffuse *= it1->material.diffuseTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
 									if(it1->material.specularTexture != nullptr)
 										it1->material.specular *= it1->material.specularTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
-									if((int)it1->position.x <= (int)it2->position.x || it2 >= lines[i+1].end())
-										it1++;
+									it1++;
 								}
 
-								if(it2 < lines[i+1].end()){
+								if(it2 < lines[i+1].end() && (it1 >= lines[i].end() || (int)it2->position.x <= (int)it1->position.x)){
 									it2->texel /= it2->position.z;
 									if(it2->material.ambientTexture != nullptr)
 										it2->material.ambient *= it2->material.ambientTexture->shade(it2->texel.x, it2->texel.y, dx, dy);
@@ -195,8 +198,7 @@ namespace asp{
 										it2->material.diffuse *= it2->material.diffuseTexture->shade(it2->texel.x, it2->texel.y, dx, dy);
 									if(it2->material.specularTexture != nullptr)
 										it2->material.specular *= it2->material.specularTexture->shade(it2->texel.x, it2->texel.y, dx, dy);
-									if((int)it2->position.x <= (int)it1->position.x || it1 >= lines[i].end())
-										it2++;
+									it2++;
 								}
 							}
 						}
