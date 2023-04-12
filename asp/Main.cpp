@@ -108,20 +108,21 @@ int main(){
 	//i.transform *= scale(2, 2, 1);
 	//scene.objects.push_back(&i);
 
-	for(int i = 0; i < 1; i++){
-		Instance* inst = new Instance(&model);
-		inst->transform *= rotateX(-M_PI/2);
-		inst->transform *= scale(4, 4, 4);
-		inst->transform *= translate(-2, -2, 4*i+3);
-		scene.objects.push_back(inst);
+	for(int w = 0; w < 60; w++)
+		for(int i = 0; i < 120; i++){
+			Instance* inst = new Instance(&model);
+			inst->transform *= rotateX(-M_PI/2);
+			inst->transform *= scale(4, 4, 4);
+			inst->transform *= translate(4*w-122, -2, 4*i+2);
+			scene.objects.push_back(inst);
 
-		//Instance* inst2 = new Instance(&model);
-		//inst2->transform *= rotateX(M_PI/2);
-		//inst2->transform *= rotateY(M_PI);
-		//inst2->transform *= scale(4, 4, 4);
-		//inst2->transform *= translate(2, 2, 4*i+2);
-		//scene.objects.push_back(inst2);
-	}
+			//Instance* inst2 = new Instance(&model);
+			//inst2->transform *= rotateX(M_PI/2);
+			//inst2->transform *= rotateY(M_PI);
+			//inst2->transform *= scale(4, 4, 4);
+			//inst2->transform *= translate(2, 2, 4*i+2);
+			//scene.objects.push_back(inst2);
+		}
 
 	Light aLight;
 	aLight.color = 0xFFFFFF;

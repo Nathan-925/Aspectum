@@ -144,18 +144,20 @@ namespace asp{
 				}
 			}
 
-		Color c[] = {0, 0xFF, 0xFF00, 0xFF0000, 0xFFFF, 0xFFFF00, 0xFF00FF};
-		int ci = 0;
 		while(min(images.back().width, images.back().height) > 2){
 			Image prev = images.back();
 			images.emplace_back(prev.width/2, prev.height/2);
 			for(int i = 0; i < images.back().width; i++)
 				for(int j = 0; j < images.back().height; j++)
-					//images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
-												  //average(prev[i*2][j*2], prev[i*2+1][j*2]));
-					images.back()[i][j] = c[ci%7];
-			ci++;
+					images.back()[i][j] = average(average(prev[i*2][j*2], prev[i*2+1][j*2]),
+												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
+
+		Color c[] = {0xFFFFFF, 0xFF, 0xFF00, 0xFF0000, 0xFFFF, 0xFFFF00, 0xFF00FF};
+		for(int i = 0; i < images.size(); i++)
+			for(int j = 0; j < images[i].width; j++)
+				for(int l = 0; l < images[i].height; l++)
+					images[i][j][l] = c[i&7];
 	}
 
 	Color Texture::bilinear(int layer, double x, double y){
@@ -179,9 +181,9 @@ namespace asp{
 		double p = sqrt(max(dx.x*dx.x+dx.y*dx.y, dy.x*dy.x+dy.y*dy.y));
 		//cout << settings->mipmapping << endl;
 		double baseMap = settings->mipmapping ?
-				images.size()-min((double)images.size(), abs(log2(p))) :
+				max(0.0, images.size()+min(-1.0, log2(p))) :
 				0;
-		cout << 1/dx.x << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
+		//cout << 1/dy.y << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
 		//cout << baseMap << " " << images.size() << endl;
 
 		if(settings->wrap){
