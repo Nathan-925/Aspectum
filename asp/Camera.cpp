@@ -28,6 +28,10 @@ namespace asp{
 		for(int i = 0; i < width; i++)
 			depthInverse[i] = new double[height];
 
+		fragments = new Fragment*[height+2];
+		for(int i = 0; i < height+2; i++)
+			fragments[i] = new Fragment[width+2];
+
 		clear();
 
 		setFOV(90);
@@ -37,6 +41,10 @@ namespace asp{
 		for(int i = 0; i < viewPort.width; i++)
 			delete[] depthInverse[i];
 		delete[] depthInverse;
+
+		for(int i = 0; i < viewPort.height+2; i++)
+			delete[] fragments[i];
+		delete[] fragments;
 	}
 
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, priori::Vector texel, const Material &material){
@@ -130,9 +138,6 @@ namespace asp{
 				double dx = max(dx01, max(dx02, dx12));
 				double xMin = min(f0.position.x, min(f1.position.x, f2.position.x));
 
-				Fragment** fragments = new Fragment*[(int)dy02+2];
-				for(int i = 0; i <= dy02+2; i++)
-					fragments[i] = new Fragment[(int)dx+2];
 				forward_list<pair<Fragment*, int>> lines;
 
 				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1);
@@ -149,7 +154,7 @@ namespace asp{
 					lines.push_front(make_pair(l12, dy12));
 				}
 				else{
-					for(int i = 0; i <= dy02+1; i++){
+					for(int i = 0; i <= dy02; i++){
 						Fragment f1 = l02[i];
 						Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
 						if(f1.position.x > f2.position.x)
@@ -165,21 +170,30 @@ namespace asp{
 							end = max(1.0, lines.front().first->position.x-f2.position.x);
 						}
 						lines.push_front(make_pair(
-								lerp<Fragment>(fragments[i]+(int)(f1.position.x-xMin),
+								lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 										f1.position.x, f1,
 										f2.position.x, f2,
-										f2.position.x-f1.position.x+end,
+										f2.position.x-f1.position.x+end-start,
 										start),
 								f2.position.x-f1.position.x));
 					}
 
 					if(settings->textures){
-						for(pair<Fragment*, int> pair: lines)
+						int y = 0;
+						for(pair<Fragment*, int> pair: lines){
 							for(int i = 0; i < pair.second; i++){
-								pair.first->material.ambient *= pair.first->material.ambientTexture->shade(&pair.first);
-								pair.first->material.diffuse *= pair.first->material.diffuseTexture->shade(&pair.first);
-								pair.first->material.specular *= pair.first->material.specularTexture->shade(&pair.first);
+								try{
+								pair.first->material.ambient *= pair.first->material.ambientTexture->shade(fragments, pair.first->position.x, pair.first->position.y);
+								pair.first->material.diffuse *= pair.first->material.diffuseTexture->shade(fragments, pair.first->position.x, pair.first->position.y);
+								pair.first->material.specular *= pair.first->material.specularTexture->shade(fragments, pair.first->position.x, pair.first->position.y);
+								}
+								catch(...){
+									cout << pair.first->position.x+i-xMin << " " << y << endl;
+									exit(1);
+								}
 							}
+							y++;
+						}
 					}
 				}
 

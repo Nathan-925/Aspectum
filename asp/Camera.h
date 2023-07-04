@@ -36,6 +36,7 @@ namespace asp{
 	public:
 		double focalLength;
 		priori::Image viewPort;
+		Fragment** fragments;
 		RenderSettings* settings;
 		priori::Vector3D position;
 		double rx, ry, rz;

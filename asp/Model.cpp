@@ -177,32 +177,32 @@ namespace asp{
 				lerp<Color>(xFrac, images[layer][(int)xPos][(int)yPos+1], images[layer][(int)xPos+1][(int)yPos+1]));
 	}
 
-	Color Texture::shade(Fragment** fragment){
+	Color Texture::shade(Fragment** fragment, int x, int y){
 		//cout << settings->mipmapping << endl;
 		double baseMap = 0;
 		//cout << 1/dy.y << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
 		//cout << baseMap << " " << images.size() << endl;
 
 		if(settings->mipmapping){
-			Vector dx = fragment[1][0].texel-fragment[0][0].texel;
-			Vector dy = fragment[0][1].texel-fragment[0][0].texel;
+			Vector dx = fragment[x][y+1].texel-fragment[x][y].texel;
+			Vector dy = fragment[x+1][y].texel-fragment[x][y].texel;
 			double p = sqrt(max(dx.x*dx.x+dx.y*dx.y, dy.x*dy.x+dy.y*dy.y));
 			baseMap = max(0.0, images.size()+min(-1.0, log2(p)));
 		}
 
-		int x, y;
+		int xPos, yPos;
 		if(settings->wrap){
 			double temp;
-			x = modf(fragment[0][0].position.x, &temp);
-			if(x < 0)
-				x += 1;
-			y = modf(fragment[0][0].position.y, &temp);
-			if(y < 0)
-				y += 1;
+			xPos = modf(fragment[0][0].position.x, &temp);
+			if(xPos < 0)
+				xPos += 1;
+			yPos = modf(fragment[0][0].position.y, &temp);
+			if(yPos < 0)
+				yPos += 1;
 		}
 		else{
-			x = min(1.0, max(0.0, fragment[0][0].position.x));
-			y = min(1.0, max(0.0, fragment[0][0].position.y));
+			xPos = min(1.0, max(0.0, fragment[x][y].position.x));
+			yPos = min(1.0, max(0.0, fragment[x][y].position.y));
 		}
 
 		if(settings->filtering == settings->TRILINEAR && settings->mipmapping && images.size() > 1 && min(images[baseMap].width, images[baseMap].height) >= 4){
@@ -212,13 +212,13 @@ namespace asp{
 				mapFrac = 1;
 			}
 			//cout << baseMap << " " << mapFrac << " " << images.size() << endl;
-			return lerp<Color>(mapFrac, bilinear(baseMap, x, y), bilinear(baseMap+1, x, y));
+			return lerp<Color>(mapFrac, bilinear(baseMap, xPos, yPos), bilinear(baseMap+1, xPos, yPos));
 		}
 
 		if(settings->filtering == settings->BILINEAR && min(images[baseMap].width, images[baseMap].height) > 1)
-			return bilinear(baseMap, x, y);
+			return bilinear(baseMap, xPos, yPos);
 
-		return images[baseMap][(int)round(x*(images[baseMap].width-1))][images[baseMap].height-1-(int)round(y*(images[baseMap].height-1))];
+		return images[baseMap][(int)round(xPos*(images[baseMap].width-1))][images[baseMap].height-1-(int)round(yPos*(images[baseMap].height-1))];
 	}
 
 	Instance::Instance(Model* m) : model(m), transform() {};
