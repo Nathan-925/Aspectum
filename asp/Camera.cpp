@@ -5,6 +5,7 @@
  *      Author: Nathan
  */
 #include <cmath>
+#include <forward_list>
 #include <iostream>
 
 #include "Camera.h"
@@ -134,79 +135,58 @@ namespace asp{
 				Vector dtx = Vector{dx, dx}/max(1.0, abs(x1.texel.x/x1.position.z-f0.texel.x/f0.position.z));
 				Vector dty = Vector{dy, dy}/max(1.0, abs(y1.texel.y/y1.position.z-f0.texel.y/f0.position.z));
 
-				vector<vector<Fragment>> lines;
+				Fragment** fragments = new Fragment*[(int)dy+1];
+				for(int i = 0; i <= dy; i++)
+					fragments[i] = new Fragment[(int)dx];
+				forward_list<pair<Fragment*, int>> lines;
+
+				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1);
+				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2);
+				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2);
+
 				if(settings->wireframe){
 					f0.normal = Vector3D{0, 0, -1};
 					f1.normal = Vector3D{0, 0, -1};
 					f2.normal = Vector3D{0, 0, -1};
-					lines.push_back(dy01 > dx01 ? lerp<Fragment>(0, f0, dy01, f1) : lerp<Fragment>(0, f0, dx01, f1));
-					lines.push_back(dy02 > dx02 ? lerp<Fragment>(0, f0, dy02, f2) : lerp<Fragment>(0, f0, dx02, f2));
-					lines.push_back(dy12 > dx12 ? lerp<Fragment>(0, f1, dy12, f2) : lerp<Fragment>(0, f1, dx12, f2));
+
+					lines.push_front(make_pair(l01, dy01));
+					lines.push_front(make_pair(l02, dy02));
+					lines.push_front(make_pair(l12, dy12));
 				}
 				else{
-					vector<Fragment> l01 = lerp<Fragment>(0, f0, dy01, f1);
-					vector<Fragment> l02 = lerp<Fragment>(0, f0, dy02, f2);
-					vector<Fragment> l12 = lerp<Fragment>(0, f1, dy12, f2);
-
-					auto it01 = l01.begin();
-					auto it02 = l02.begin();
-					auto it12 = l12.begin();
-
 					for(int i = 0; i <= dy02; i++){
-						Fragment f1 = *it02++;
-						Fragment f2 = i < dy01 ? *it01++ : *it12++;
+						Fragment f1 = l02[i];
+						Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
 						if(f1.position.x > f2.position.x)
 							swap(f1, f2);
-						lines.push_back(lerp<Fragment>(f1.position.x, f1, f2.position.x, f2));
+
+						int start, end;
+						if(lines.empty()){
+							start = f1.position.x;
+							end = f2.position.x+1;
+						}
+						else{
+							start = min(0.0, lines.front().first->position.x-f1.position.x);
+							end = max(1.0, f2.position.x-lines.front().first->position.x);
+						}
+						lines.push_front(make_pair(
+								lerp<Fragment>(fragments[(int)f1.position.x]+i, f1.position.x, f1, f2.position.x, f2, end-start, start),
+								f2.position.x-f1.position.x));
 					}
 
 					if(settings->textures){
-						Vector dx, dy;
-						for(unsigned int i = 0; i < lines.size()-1; i+=2){
-							auto it1 = lines[i].begin(), it2 = lines[i+1].begin();
-							while(it1 < lines[i].end() || it2 < lines[i+1].end()){
-								if(it1+1 < lines[i].end())
-									dx = (it1+1)->texel/(it1+1)->position.z - it1->texel/it1->position.z;
-								else if(it2+1 < lines[i+1].end())
-									dx = (it2+1)->texel/(it2+1)->position.z - it2->texel/it2->position.z;
-
-								cout << it1->position.x << " " << it2->position.x << endl;
-
-								if(it1 < lines[i].end() && it2 < lines[i+1].end()){
-									if(it1->position.x < it2->position.x)
-										dy = it2->texel/it2->position.z - (it1+((int)it2->position.x-(int)it1->position.x))->texel/(it1+((int)it2->position.x-(int)it1->position.x))->position.z;
-									else
-										dy = (it2+((int)it1->position.x-(int)it2->position.x))->texel/(it2+((int)it1->position.x-(int)it2->position.x))->position.z - it1->texel/it1->position.z;
-								}
-
-								if(it1 < lines[i].end() && (it2 >= lines[i+1].end() || (int)it1->position.x <= (int)it2->position.x)){
-									it1->texel /= it1->position.z;
-									if(it1->material.ambientTexture != nullptr)
-										it1->material.ambient *= it1->material.ambientTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
-									if(it1->material.diffuseTexture != nullptr)
-										it1->material.diffuse *= it1->material.diffuseTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
-									if(it1->material.specularTexture != nullptr)
-										it1->material.specular *= it1->material.specularTexture->shade(it1->texel.x, it1->texel.y, dx, dy);
-									it1++;
-								}
-
-								if(it2 < lines[i+1].end() && (it1 >= lines[i].end() || (int)it2->position.x <= (int)it1->position.x)){
-									it2->texel /= it2->position.z;
-									if(it2->material.ambientTexture != nullptr)
-										it2->material.ambient *= it2->material.ambientTexture->shade(it2->texel.x, it2->texel.y, dx, dy);
-									if(it2->material.diffuseTexture != nullptr)
-										it2->material.diffuse *= it2->material.diffuseTexture->shade(it2->texel.x, it2->texel.y, dx, dy);
-									if(it2->material.specularTexture != nullptr)
-										it2->material.specular *= it2->material.specularTexture->shade(it2->texel.x, it2->texel.y, dx, dy);
-									it2++;
-								}
+						for(pair<Fragment*, int> pair: lines)
+							for(int i = 0; i < pair.second; i++){
+								pair.first->material.ambient *= pair.first->material.ambientTexture->shade(&pair.first);
+								pair.first->material.diffuse *= pair.first->material.diffuseTexture->shade(&pair.first);
+								pair.first->material.specular *= pair.first->material.specularTexture->shade(&pair.first);
 							}
-						}
 					}
 				}
 
-				for(vector<Fragment> line: lines){
-					for(Fragment f: line){
+				for(pair<Fragment*, int> pair: lines){
+					for(int i = 0; i < pair.second; i++){
+						Fragment f = pair.first[i];
 						int x = f.position.x, y = f.position.y;
 
 						if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){

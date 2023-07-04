@@ -177,27 +177,32 @@ namespace asp{
 				lerp<Color>(xFrac, images[layer][(int)xPos][(int)yPos+1], images[layer][(int)xPos+1][(int)yPos+1]));
 	}
 
-	Color Texture::shade(double x, double y, Vector dx, Vector dy){
-		double p = sqrt(max(dx.x*dx.x+dx.y*dx.y, dy.x*dy.x+dy.y*dy.y));
+	Color Texture::shade(Fragment** fragment){
 		//cout << settings->mipmapping << endl;
-		double baseMap = settings->mipmapping ?
-				max(0.0, images.size()+min(-1.0, log2(p))) :
-				0;
+		double baseMap = 0;
 		//cout << 1/dy.y << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
 		//cout << baseMap << " " << images.size() << endl;
 
+		if(settings->mipmapping){
+			Vector dx = fragment[1][0].texel-fragment[0][0].texel;
+			Vector dy = fragment[0][1].texel-fragment[0][0].texel;
+			double p = sqrt(max(dx.x*dx.x+dx.y*dx.y, dy.x*dy.x+dy.y*dy.y));
+			baseMap = max(0.0, images.size()+min(-1.0, log2(p)));
+		}
+
+		int x, y;
 		if(settings->wrap){
 			double temp;
-			x = modf(x, &temp);
+			x = modf(fragment[0][0].position.x, &temp);
 			if(x < 0)
 				x += 1;
-			y = modf(y, &temp);
+			y = modf(fragment[0][0].position.y, &temp);
 			if(y < 0)
 				y += 1;
 		}
 		else{
-			x = min(1.0, max(0.0, x));
-			y = min(1.0, max(0.0, y));
+			x = min(1.0, max(0.0, fragment[0][0].position.x));
+			y = min(1.0, max(0.0, fragment[0][0].position.y));
 		}
 
 		if(settings->filtering == settings->TRILINEAR && settings->mipmapping && images.size() > 1 && min(images[baseMap].width, images[baseMap].height) >= 4){
