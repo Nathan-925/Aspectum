@@ -127,17 +127,12 @@ namespace asp{
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
-				Fragment x1 = f0.texel.x == f1.texel.x ? f2 : f1;
-				Fragment y1 = f0.texel.y == f1.texel.y ? f2 : f1;
+				double dx = max(dx01, max(dx02, dx12));
+				double xMin = min(f0.position.x, min(f1.position.x, f2.position.x));
 
-				double dx = abs(x1.position.x-f0.position.x);
-				double dy = abs(y1.position.y-f0.position.y);
-				Vector dtx = Vector{dx, dx}/max(1.0, abs(x1.texel.x/x1.position.z-f0.texel.x/f0.position.z));
-				Vector dty = Vector{dy, dy}/max(1.0, abs(y1.texel.y/y1.position.z-f0.texel.y/f0.position.z));
-
-				Fragment** fragments = new Fragment*[(int)dy+1];
-				for(int i = 0; i <= dy; i++)
-					fragments[i] = new Fragment[(int)dx];
+				Fragment** fragments = new Fragment*[(int)dy02+2];
+				for(int i = 0; i <= dy02+2; i++)
+					fragments[i] = new Fragment[(int)dx+2];
 				forward_list<pair<Fragment*, int>> lines;
 
 				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1);
@@ -154,7 +149,7 @@ namespace asp{
 					lines.push_front(make_pair(l12, dy12));
 				}
 				else{
-					for(int i = 0; i <= dy02; i++){
+					for(int i = 0; i <= dy02+1; i++){
 						Fragment f1 = l02[i];
 						Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
 						if(f1.position.x > f2.position.x)
@@ -162,15 +157,19 @@ namespace asp{
 
 						int start, end;
 						if(lines.empty()){
-							start = f1.position.x;
-							end = f2.position.x+1;
+							start = 0;
+							end = 1;
 						}
 						else{
 							start = min(0.0, lines.front().first->position.x-f1.position.x);
-							end = max(1.0, f2.position.x-lines.front().first->position.x);
+							end = max(1.0, lines.front().first->position.x-f2.position.x);
 						}
 						lines.push_front(make_pair(
-								lerp<Fragment>(fragments[(int)f1.position.x]+i, f1.position.x, f1, f2.position.x, f2, end-start, start),
+								lerp<Fragment>(fragments[i]+(int)(f1.position.x-xMin),
+										f1.position.x, f1,
+										f2.position.x, f2,
+										f2.position.x-f1.position.x+end,
+										start),
 								f2.position.x-f1.position.x));
 					}
 
