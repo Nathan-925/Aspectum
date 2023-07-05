@@ -139,6 +139,12 @@ namespace asp{
 				double xMin = min(f0.position.x, min(f1.position.x, f2.position.x));
 
 				forward_list<pair<Fragment*, int>> lines;
+				bool** fragMap = new bool*[viewPort.height+2];
+				for(int i = 0; i < viewPort.height+2; i++){
+					fragMap[i] = new bool[viewPort.width+2];
+					for(int j = 0; j < viewPort.width+2; j++)
+						fragMap[i][j] = false;
+				}
 
 				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1);
 				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2);
@@ -169,30 +175,42 @@ namespace asp{
 							start = min(0.0, lines.front().first->position.x-f1.position.x);
 							end = max(1.0, lines.front().first->position.x-f2.position.x);
 						}
+						cout << f1.position.x << ", " << f1.position.y << "\t"
+								<< f2.position.x << ", " << f2.position.y << "\t"
+								<< f2.position.x-f1.position.x+end-start << "\t"
+								<< start << endl;
 						lines.push_front(make_pair(
 								lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 										f1.position.x, f1,
 										f2.position.x, f2,
 										f2.position.x-f1.position.x+end-start,
 										start),
-								f2.position.x-f1.position.x));
+								f2.position.x-f1.position.x+1));
+						cout << lines.front().first->position.x << ", " << lines.front().first->position.y << "\t"
+								<< (fragments[(int)f1.position.y]+(int)f1.position.x)->position.x << ", " << (fragments[(int)f1.position.y]+(int)f1.position.x)->position.y << endl;
+
+						for(int j = f1.position.x+start; j < f2.position.x+end; j++)
+							fragMap[(int)f1.position.y][j] = true;
 					}
 
+					for(int i = 0; i < viewPort.height+2; i++){
+						for(int j = 0; j < viewPort.width+2; j++)
+							cout << fragMap[i][j];
+						cout << endl;
+					}
+					for(pair<Fragment*, int> pair: lines)
+						cout << pair.first->position.x << ", " << pair.first->position.y << "\t" << pair.second << endl;
+
 					if(settings->textures){
-						int y = 0;
 						for(pair<Fragment*, int> pair: lines){
 							for(int i = 0; i < pair.second; i++){
-								try{
-								pair.first->material.ambient *= pair.first->material.ambientTexture->shade(fragments, pair.first->position.x, pair.first->position.y);
-								pair.first->material.diffuse *= pair.first->material.diffuseTexture->shade(fragments, pair.first->position.x, pair.first->position.y);
-								pair.first->material.specular *= pair.first->material.specularTexture->shade(fragments, pair.first->position.x, pair.first->position.y);
-								}
-								catch(...){
-									cout << pair.first->position.x+i-xMin << " " << y << endl;
-									exit(1);
-								}
+								if(pair.first[i].material.ambientTexture != nullptr)
+									pair.first[i].material.ambient *= pair.first[i].material.ambientTexture->shade(fragments, pair.first[i].position.x, pair.first[i].position.y);
+								if(pair.first[i].material.diffuseTexture != nullptr)
+									pair.first[i].material.diffuse *= pair.first[i].material.diffuseTexture->shade(fragments, pair.first[i].position.x, pair.first[i].position.y);
+								if(pair.first[i].material.specularTexture != nullptr)
+									pair.first[i].material.specular *= pair.first[i].material.specularTexture->shade(fragments, pair.first[i].position.x, pair.first[i].position.y);
 							}
-							y++;
 						}
 					}
 				}

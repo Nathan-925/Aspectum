@@ -153,11 +153,11 @@ namespace asp{
 												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
 
-		Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFFFF, 0xFFFF, 0xFFFF00, 0xFF00FF};
-		for(int i = 0; i < images.size(); i++)
-			for(int j = 0; j < images[i].width; j++)
-				for(int l = 0; l < images[i].height; l++)
-					images[i][j][l] = c[i&7];
+		//Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFFFF, 0xFFFF, 0xFFFF00, 0xFF00FF};
+		//for(int i = 0; i < images.size(); i++)
+		//	for(int j = 0; j < images[i].width; j++)
+		//		for(int l = 0; l < images[i].height; l++)
+		//			images[i][j][l] = c[i&7];
 	}
 
 	Color Texture::bilinear(int layer, double x, double y){
@@ -179,30 +179,31 @@ namespace asp{
 
 	Color Texture::shade(Fragment** fragment, int x, int y){
 		//cout << settings->mipmapping << endl;
+		Vector texel = fragment[y][x].texel/fragment[y][x].position.z;
 		double baseMap = 0;
 		//cout << 1/dy.y << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
 		//cout << baseMap << " " << images.size() << endl;
 
 		if(settings->mipmapping){
-			Vector dx = fragment[x][y+1].texel-fragment[x][y].texel;
-			Vector dy = fragment[x+1][y].texel-fragment[x][y].texel;
+			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].position.z-texel;
+			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].position.z-texel;
 			double p = sqrt(max(dx.x*dx.x+dx.y*dx.y, dy.x*dy.x+dy.y*dy.y));
 			baseMap = max(0.0, images.size()+min(-1.0, log2(p)));
 		}
 
-		int xPos, yPos;
+		double xPos, yPos;
 		if(settings->wrap){
 			double temp;
-			xPos = modf(fragment[0][0].position.x, &temp);
+			xPos = modf(texel.x, &temp);
 			if(xPos < 0)
 				xPos += 1;
-			yPos = modf(fragment[0][0].position.y, &temp);
+			yPos = modf(texel.y, &temp);
 			if(yPos < 0)
 				yPos += 1;
 		}
 		else{
-			xPos = min(1.0, max(0.0, fragment[x][y].position.x));
-			yPos = min(1.0, max(0.0, fragment[x][y].position.y));
+			xPos = min(1.0, max(0.0, texel.x));
+			yPos = min(1.0, max(0.0, texel.y));
 		}
 
 		if(settings->filtering == settings->TRILINEAR && settings->mipmapping && images.size() > 1 && min(images[baseMap].width, images[baseMap].height) >= 4){

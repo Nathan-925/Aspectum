@@ -25,13 +25,21 @@ using namespace asp;
 
 int main(){
 
+	Fragment f1, f2;
+	f1.texel = Vector{0, 0};
+	f2.texel = Vector{10, -20};
+	Fragment* arr = lerp<Fragment>(0, f2, 10, f1, 11, -1);
+	for(int i = 0; i <= 10; i++)
+		cout << arr[i].texel.x << "," << arr[i].texel.y << " ";
+	cout << endl;
+
 	Color c1(0), c2(0xFFFFFF);
 	cout << hex << (uint32_t)lerp<Color>(0.3, c1, c2) << " " << (uint32_t)lerp<Color>(0.3, c2, c1) << dec << endl;
 
 	RenderSettings settings;
 	settings.wireframe = false;
 	settings.textures = true;
-	settings.textureSettings.mipmapping = true;
+	settings.textureSettings.mipmapping = false;
 	settings.textureSettings.filtering = settings.textureSettings.NONE;
 	settings.shading = false;
 	settings.specular = true;
@@ -88,23 +96,25 @@ int main(){
 	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
 			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
 
-	model.triangles.emplace_back();
-	model.triangles.back().vertices[0] = 3;
-	model.triangles.back().vertices[1] = 2;
-	model.triangles.back().vertices[2] = 1;
-	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	model.triangles.back().texels[0] = Vector{1, 1};
-	model.triangles.back().texels[1] = Vector{1, 0};
-	model.triangles.back().texels[2] = Vector{0, 1};
-	model.triangles.back().material.diffuse = 0xFFFFFF;
-	model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
+	//model.triangles.emplace_back();
+	//model.triangles.back().vertices[0] = 3;
+	//model.triangles.back().vertices[1] = 2;
+	//model.triangles.back().vertices[2] = 1;
+	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	//model.triangles.back().texels[0] = Vector{1, 1};
+	//model.triangles.back().texels[1] = Vector{1, 0};
+	//model.triangles.back().texels[2] = Vector{0, 1};
+	//model.triangles.back().material.diffuse = 0xFFFFFF;
+	//model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
 
 	Scene scene;
 
 	Instance i(&model);
-	i.transform *= translate(-0.5, -0.5, 5);
+	//i.transform *= rotateX(M_PI/4);
+	i.transform *= translate(-0.5, -0.5, 3);
+	i.transform *= rotateZ(M_PI/4);
 	i.transform *= scale(2, 2, 1);
 	scene.objects.push_back(&i);
 
@@ -158,7 +168,7 @@ int main(){
 	//	inst->transform *= translate(0, -5, 5*i);
 	//}
 
-	Camera camera(1000, 1000);
+	Camera camera(10, 10);
 	camera.settings = &settings;
 	//camera.fragmentShaders.push_back(colorNormals);
 
