@@ -147,8 +147,8 @@ namespace asp{
 				}
 
 				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1);
-				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2);
-				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2);
+				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
+				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
 
 				if(settings->wireframe){
 					f0.normal = Vector3D{0, 0, -1};
@@ -178,20 +178,38 @@ namespace asp{
 						cout << f1.position.x << ", " << f1.position.y << "\t"
 								<< f2.position.x << ", " << f2.position.y << "\t"
 								<< f2.position.x-f1.position.x+end-start << "\t"
-								<< start << endl;
+								<< start << " " << end << endl;
 						lines.push_front(make_pair(
 								lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 										f1.position.x, f1,
 										f2.position.x, f2,
-										f2.position.x-f1.position.x+end-start,
+										f2.position.x-f1.position.x+end-start+1,
 										start),
 								f2.position.x-f1.position.x+1));
 						cout << lines.front().first->position.x << ", " << lines.front().first->position.y << "\t"
 								<< (fragments[(int)f1.position.y]+(int)f1.position.x)->position.x << ", " << (fragments[(int)f1.position.y]+(int)f1.position.x)->position.y << endl;
 
-						for(int j = f1.position.x+start; j < f2.position.x+end; j++)
+						for(int j = f1.position.x+start; j <= f2.position.x+end; j++)
 							fragMap[(int)f1.position.y][j] = true;
 					}
+					Fragment f1 = l02[dy02+1];
+					Fragment f2 = l12[dy12+1];
+					if(f1.position.x > f2.position.x)
+						swap(f1, f2);
+					Fragment fp1 = l02[dy02];
+					Fragment fp2 = l12[dy12];
+					if(fp1.position.x > fp2.position.x)
+						swap(fp1, fp2);
+					cout << f1.position.x << ", " << f1.position.y << "\t" << f2.position.x << ", " << f2.position.y << endl;
+					cout << fp1.position.x << ", " << fp1.position.y << "\t" << fp2.position.x << ", " << fp2.position.y << endl;
+
+					lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
+							f1.position.x, f1,
+							f2.position.x, f1,
+							fp1.position.x-f1.position.x,
+							fp2.position.x-fp1.position.x+1);
+					for(int i = 0; i < fp2.position.x-fp1.position.x+1; i++)
+						fragMap[(int)f1.position.y][(int)f1.position.x+i] = true;
 
 					for(int i = 0; i < viewPort.height+2; i++){
 						for(int j = 0; j < viewPort.width+2; j++)
