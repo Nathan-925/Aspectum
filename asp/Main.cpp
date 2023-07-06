@@ -62,7 +62,7 @@ int main(){
 	model.vertices.emplace_back();
 	model.vertices.back().position = Vector3D{0, 1, 0, true};
 	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{1, 0, 0, true};
+	model.vertices.back().position = Vector3D{2, 0, 0, true};
 	model.vertices.emplace_back();
 	model.vertices.back().position = Vector3D{1, 1, 0, true};
 
@@ -168,7 +168,7 @@ int main(){
 	//	inst->transform *= translate(0, -5, 5*i);
 	//}
 
-	Camera camera(10, 10);
+	Camera camera(1000, 1000);
 	camera.settings = &settings;
 	//camera.fragmentShaders.push_back(colorNormals);
 
