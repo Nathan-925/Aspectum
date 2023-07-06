@@ -135,9 +135,6 @@ namespace asp{
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
-				double dx = max(dx01, max(dx02, dx12));
-				double xMin = min(f0.position.x, min(f1.position.x, f2.position.x));
-
 				forward_list<pair<Fragment*, int>> lines;
 				bool** fragMap = new bool*[viewPort.height+2];
 				for(int i = 0; i < viewPort.height+2; i++){
