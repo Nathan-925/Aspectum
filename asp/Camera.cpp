@@ -159,8 +159,13 @@ namespace asp{
 							end = 1;
 						}
 						else{
-							start = min(0.0, lines.front().first->position.x-f1.position.x);
-							end = max(1.0, lines.front().first->position.x-f2.position.x);
+							Fragment fp1 = l02[i-1];
+							Fragment fp2 = i-1 < dy01 ? l01[i-1] : l12[i-dy01-1];
+							if(fp1.position.x > fp2.position.x)
+								swap(fp1, fp2);
+
+							start = min(0.0, fp1.position.x-f1.position.x);
+							end = max(1.0, fp2.position.x-f2.position.x);
 						}
 
 						lines.push_front(make_pair(
