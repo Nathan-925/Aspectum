@@ -127,15 +127,20 @@ namespace asp{
 				if(f1.position.y > f2.position.y)
 					swap(f1, f2);
 
+				cout << f0.position.x << ", " << f0.position.y << "\t"
+						<< f1.position.x << ", " << f1.position.y << "\t"
+						<< f2.position.x << ", " << f2.position.y << endl;
+
 				int dy01 = f1.position.y-f0.position.y;
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
 				forward_list<pair<Fragment*, int>> lines;
 
-				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1);
+				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01+2);
 				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
 				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
+				printf("%d %d %d\n", dy02, dy12, dy01);
 
 				if(settings->wireframe){
 					f0.normal = Vector3D{0, 0, -1};
@@ -155,8 +160,8 @@ namespace asp{
 
 						int start, end;
 						if(lines.empty()){
-							start = 0;
-							end = 1;
+							start = f1.position.x;
+							end = f2.position.x;
 						}
 						else{
 							Fragment fp1 = l02[i-1];
@@ -164,32 +169,35 @@ namespace asp{
 							if(fp1.position.x > fp2.position.x)
 								swap(fp1, fp2);
 
-							start = min(0.0, fp1.position.x-f1.position.x);
-							end = max(1.0, fp2.position.x-f2.position.x);
+							start = min(f1.position.x, fp1.position.x);
+							end = max(f2.position.x, fp2.position.x);
 						}
 
 						lines.push_front(make_pair(
 								lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 										f1.position.x, f1,
 										f2.position.x, f2,
-										f2.position.x-f1.position.x+end-start+1,
-										start),
+										end-start+2,
+										start-f1.position.x),
 								f2.position.x-f1.position.x+1));
 					}
 					Fragment f1 = l02[dy02+1];
-					Fragment f2 = l12[dy12+1];
+					Fragment f2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
 					if(f1.position.x > f2.position.x)
 						swap(f1, f2);
-					Fragment fp1 = l02[dy02];
-					Fragment fp2 = l12[dy12];
-					if(fp1.position.x > fp2.position.x)
+					int fp1 = lines.front().first->position.x;
+					int fp2 = lines.front().first[lines.front().second].position.x;
+					if(fp1 > fp2)
 						swap(fp1, fp2);
 
 					lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 							f1.position.x, f1,
 							f2.position.x, f2,
-							fp2.position.x-fp1.position.x+1,
-							fp1.position.x-f1.position.x);
+							lines.front().second,
+							fp1-f1.position.x);
+					printf("%1.0f, %1.0f\n", lines.front().first->position.x, lines.front().first->position.y);
+					printf("%1.0f, %1.0f\n", fragments[(int)f1.position.y][fp1].position.x, fragments[(int)f1.position.y][(int)fp1].position.y);
+					printf("%d\n", fp1);
 
 					if(settings->textures){
 						for(pair<Fragment*, int> pair: lines){
@@ -206,9 +214,9 @@ namespace asp{
 				}
 
 				for(pair<Fragment*, int> pair: lines){
-					for(int i = 0; i < pair.second; i++){
+					int x = pair.first->position.x, y = pair.first->position.y;
+					for(int i = 0; i < pair.second; i++, x++){
 						Fragment f = pair.first[i];
-						int x = f.position.x, y = f.position.y;
 
 						if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
 							cout << "out " << x << " " << y << endl;

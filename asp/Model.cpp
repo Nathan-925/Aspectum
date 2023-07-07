@@ -178,12 +178,12 @@ namespace asp{
 	}
 
 	Color Texture::shade(Fragment** fragment, int x, int y){
-		int c = 0xFF;
-		if(fragment[y][x].material.alpha != 0.6)
-			c = 0;
-		if(fragment[y+1][x].material.alpha != 0.6)
+		int c = 0;
+		if(fragment[y][x].material.alpha == 0.6)
+			c |= 0xFF;
+		if(fragment[y+1][x].material.alpha == 0.6)
 			c |=  0xFF00;
-		if(fragment[y][x+1].material.alpha != 0.6)
+		if(fragment[y][x+1].material.alpha == 0.6)
 			c |=  0xFF0000;
 		return Color(c);
 
