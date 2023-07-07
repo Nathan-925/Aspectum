@@ -153,11 +153,11 @@ namespace asp{
 												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
 
-		//Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFFFF, 0xFFFF, 0xFFFF00, 0xFF00FF};
-		//for(int i = 0; i < images.size(); i++)
-		//	for(int j = 0; j < images[i].width; j++)
-		//		for(int l = 0; l < images[i].height; l++)
-		//			images[i][j][l] = c[i&7];
+		Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFFFF, 0xFFFF, 0xFFFF00, 0xFF00FF};
+		for(int i = 0; i < images.size(); i++)
+			for(int j = 0; j < images[i].width; j++)
+				for(int l = 0; l < images[i].height; l++)
+					images[i][j][l] = c[i&7];
 	}
 
 	Color Texture::bilinear(int layer, double x, double y){
@@ -178,6 +178,15 @@ namespace asp{
 	}
 
 	Color Texture::shade(Fragment** fragment, int x, int y){
+		int c = 0xFF;
+		if(fragment[y][x].material.alpha != 0.6)
+			c = 0;
+		if(fragment[y+1][x].material.alpha != 0.6)
+			c |=  0xFF00;
+		if(fragment[y][x+1].material.alpha != 0.6)
+			c |=  0xFF0000;
+		return Color(c);
+
 		//cout << settings->mipmapping << endl;
 		Vector texel = fragment[y][x].texel/fragment[y][x].position.z;
 		double baseMap = 0;

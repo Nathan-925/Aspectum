@@ -89,7 +89,7 @@ namespace asp{
 				lights[i] = scene.lights[i]->copy();
 				lights[i]->transform(cameraMatrix);
 			}
-			cout << "transformed" << endl;
+			//cout << "transformed" << endl;
 
 			for(VertexShader shader: vertexShaders)
 				for(Vertex &v: vertices)
@@ -113,7 +113,7 @@ namespace asp{
 
 			for(CullingPlane plane: cullingPlanes)
 				plane.cull(vertices, triangles);
-			cout << "culled" << endl;
+			//cout << "culled" << endl;
 
 			for(Triangle &triangle: triangles){
 				Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.texels[0], triangle.material),
@@ -127,27 +127,15 @@ namespace asp{
 				if(f1.position.y > f2.position.y)
 					swap(f1, f2);
 
-				int dx01 = abs(f1.position.x-f0.position.x);
-				int dx02 = abs(f2.position.x-f0.position.x);
-				int dx12 = abs(f2.position.x-f1.position.x);
-
 				int dy01 = f1.position.y-f0.position.y;
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
 				forward_list<pair<Fragment*, int>> lines;
-				bool** fragMap = new bool*[viewPort.height+2];
-				for(int i = 0; i < viewPort.height+2; i++){
-					fragMap[i] = new bool[viewPort.width+2];
-					for(int j = 0; j < viewPort.width+2; j++)
-						fragMap[i][j] = false;
-				}
 
 				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1);
 				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
 				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
-
-				cout << dy01 << " " << dy12 << " " << dy02 << endl;
 
 				if(settings->wireframe){
 					f0.normal = Vector3D{0, 0, -1};
@@ -174,10 +162,7 @@ namespace asp{
 							start = min(0.0, lines.front().first->position.x-f1.position.x);
 							end = max(1.0, lines.front().first->position.x-f2.position.x);
 						}
-						//cout << f1.position.x << ", " << f1.position.y << "\t"
-						//		<< f2.position.x << ", " << f2.position.y << "\t"
-						//		<< f2.position.x-f1.position.x+end-start << "\t"
-						//		<< start << " " << end << endl;
+
 						lines.push_front(make_pair(
 								lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 										f1.position.x, f1,
@@ -185,11 +170,6 @@ namespace asp{
 										f2.position.x-f1.position.x+end-start+1,
 										start),
 								f2.position.x-f1.position.x+1));
-						//cout << lines.front().first->position.x << ", " << lines.front().first->position.y << "\t"
-						//		<< (fragments[(int)f1.position.y]+(int)f1.position.x)->position.x << ", " << (fragments[(int)f1.position.y]+(int)f1.position.x)->position.y << endl;
-
-						for(int j = f1.position.x+start; j <= f2.position.x+end; j++)
-							fragMap[(int)f1.position.y][j] = true;
 					}
 					Fragment f1 = l02[dy02+1];
 					Fragment f2 = l12[dy12+1];
@@ -199,24 +179,12 @@ namespace asp{
 					Fragment fp2 = l12[dy12];
 					if(fp1.position.x > fp2.position.x)
 						swap(fp1, fp2);
-					//cout << f1.position.x << ", " << f1.position.y << "\t" << f2.position.x << ", " << f2.position.y << endl;
-					//cout << fp1.position.x << ", " << fp1.position.y << "\t" << fp2.position.x << ", " << fp2.position.y << endl;
 
 					lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 							f1.position.x, f1,
-							f2.position.x, f1,
-							fp1.position.x-f1.position.x,
-							fp2.position.x-fp1.position.x+1);
-					for(int i = 0; i < fp2.position.x-fp1.position.x+1; i++)
-						fragMap[(int)f1.position.y][(int)f1.position.x+i] = true;
-
-					//for(int i = 0; i < viewPort.height+2; i++){
-					//	for(int j = 0; j < viewPort.width+2; j++)
-					//		cout << fragMap[i][j];
-					//	cout << endl;
-					//}
-					//for(pair<Fragment*, int> pair: lines)
-					//	cout << pair.first->position.x << ", " << pair.first->position.y << "\t" << pair.second << endl;
+							f2.position.x, f2,
+							fp2.position.x-fp1.position.x+1,
+							fp1.position.x-f1.position.x);
 
 					if(settings->textures){
 						for(pair<Fragment*, int> pair: lines){
