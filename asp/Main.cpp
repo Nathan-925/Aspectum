@@ -92,7 +92,7 @@ int main(){
 	model.triangles.back().texels[0] = Vector{0, 0};
 	model.triangles.back().texels[1] = Vector{0, 1};
 	model.triangles.back().texels[2] = Vector{1, 0};
-	model.triangles.back().material.diffuse = 0x888888;
+	model.triangles.back().material.diffuse = 0xFFFFFF;
 	model.triangles.back().material.alpha = 0.6;
 	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
 			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
@@ -116,7 +116,7 @@ int main(){
 
 	Instance i(&model);
 	//i.transform *= rotateX(M_PI/4);
-	i.transform *= translate(1, 0, 3);
+	i.transform *= translate(0, 0, 2);
 	//i.transform *= rotateZ(M_PI/6);
 	i.transform *= scale(2, 2, 1);
 	scene.objects.push_back(&i);

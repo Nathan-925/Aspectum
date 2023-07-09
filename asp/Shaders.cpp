@@ -27,7 +27,6 @@ namespace asp{
 				else
 					culled[2-i+numCulled] = i;
 			}
-			cout << numCulled << endl;
 
 			if(numCulled == 3){
 				triangles.erase_after(prev);
@@ -64,17 +63,10 @@ namespace asp{
 				clipping.vertices[2] = t.vertices[culled[1]];
 				clipping.normals[2] = t.normals[culled[1]];
 				clipping.texels[2] = t.texels[culled[1]];
-				clipping.material.diffuse = 0x888888;
 
 				it->vertices[culled[0]] = clipping.vertices[1];
 				it->normals[culled[0]] = clipping.normals[1];
 				it->texels[culled[0]] = clipping.texels[1];
-
-				it->material.diffuse = 0x555555;
-
-				printf("%1.0f, %1.0f, %1.0f\t%1.0f, %1.0f, %1.0f\n",
-						vertices[clipping.vertices[0]].position.x, vertices[clipping.vertices[0]].position.y, vertices[clipping.vertices[0]].position.z,
-						vertices[clipping.vertices[1]].position.x, vertices[clipping.vertices[1]].position.y, vertices[clipping.vertices[1]].position.z);
 
 				triangles.push_front(clipping);
 			}

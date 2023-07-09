@@ -153,11 +153,11 @@ namespace asp{
 												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
 
-		Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFFFF, 0xFFFF, 0xFFFF00, 0xFF00FF};
-		for(int i = 0; i < images.size(); i++)
-			for(int j = 0; j < images[i].width; j++)
-				for(int l = 0; l < images[i].height; l++)
-					images[i][j][l] = c[i&7];
+		//Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFFFF, 0xFFFF, 0xFFFF00, 0xFF00FF};
+		//for(int i = 0; i < images.size(); i++)
+		//	for(int j = 0; j < images[i].width; j++)
+		//		for(int l = 0; l < images[i].height; l++)
+		//			images[i][j][l] = c[i&7];
 	}
 
 	Color Texture::bilinear(int layer, double x, double y){
@@ -178,20 +178,17 @@ namespace asp{
 	}
 
 	Color Texture::shade(Fragment** fragment, int x, int y){
-		int c = 0;
-		if(fragment[y][x].material.alpha == 0.6)
-			c |= 0xFF;
-		if(fragment[y+1][x].material.alpha == 0.6)
-			c |=  0xFF00;
-		if(fragment[y][x+1].material.alpha == 0.6)
-			c |=  0xFF0000;
-		return Color(c);
+		//int c = 0;
+		//if(fragment[y][x].material.alpha == 0.6)
+		//	c |= 0xFF;
+		//if(fragment[y+1][x].material.alpha == 0.6)
+		//	c |=  0xFF00;
+		//if(fragment[y][x+1].material.alpha == 0.6)
+		//	c |=  0xFF0000;
+		//return Color(c)*0.8;
 
-		//cout << settings->mipmapping << endl;
 		Vector texel = fragment[y][x].texel/fragment[y][x].position.z;
 		double baseMap = 0;
-		//cout << 1/dy.y << " " << p << " " << log2(p) << " " << baseMap << " " << images[baseMap].width << " " << images.size() << endl;
-		//cout << baseMap << " " << images.size() << endl;
 
 		if(settings->mipmapping){
 			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].position.z-texel;
@@ -221,14 +218,14 @@ namespace asp{
 				baseMap = images.size()-2;
 				mapFrac = 1;
 			}
-			//cout << baseMap << " " << mapFrac << " " << images.size() << endl;
+
 			return lerp<Color>(mapFrac, bilinear(baseMap, xPos, yPos), bilinear(baseMap+1, xPos, yPos));
 		}
 
 		if(settings->filtering == settings->BILINEAR && min(images[baseMap].width, images[baseMap].height) > 1)
 			return bilinear(baseMap, xPos, yPos);
 
-		return images[baseMap][(int)round(xPos*(images[baseMap].width-1))][images[baseMap].height-1-(int)round(yPos*(images[baseMap].height-1))];
+		return images[baseMap][(int)(xPos*(images[baseMap].width-1))][images[baseMap].height-1-(int)(yPos*(images[baseMap].height-1))];
 	}
 
 	Instance::Instance(Model* m) : model(m), transform() {};

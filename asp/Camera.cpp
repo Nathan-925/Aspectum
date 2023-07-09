@@ -137,7 +137,7 @@ namespace asp{
 
 				forward_list<pair<Fragment*, int>> lines;
 
-				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01+2);
+				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01);
 				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
 				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
 				printf("%d %d %d\n", dy02, dy12, dy01);
@@ -164,8 +164,8 @@ namespace asp{
 							end = f2.position.x;
 						}
 						else{
-							Fragment fp1 = l02[i-1];
-							Fragment fp2 = i-1 < dy01 ? l01[i-1] : l12[i-dy01-1];
+							Fragment fp1 = *lines.front().first;
+							Fragment fp2 = lines.front().first[lines.front().second];
 							if(fp1.position.x > fp2.position.x)
 								swap(fp1, fp2);
 
@@ -179,10 +179,10 @@ namespace asp{
 										f2.position.x, f2,
 										end-start+2,
 										start-f1.position.x),
-								f2.position.x-f1.position.x+1));
+								(int)f2.position.x-(int)f1.position.x+1));
 					}
 					Fragment f1 = l02[dy02+1];
-					Fragment f2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
+					Fragment f2 = l12[dy12+1];
 					if(f1.position.x > f2.position.x)
 						swap(f1, f2);
 					int fp1 = lines.front().first->position.x;
@@ -195,19 +195,17 @@ namespace asp{
 							f2.position.x, f2,
 							lines.front().second,
 							fp1-f1.position.x);
-					printf("%1.0f, %1.0f\n", lines.front().first->position.x, lines.front().first->position.y);
-					printf("%1.0f, %1.0f\n", fragments[(int)f1.position.y][fp1].position.x, fragments[(int)f1.position.y][(int)fp1].position.y);
-					printf("%d\n", fp1);
 
 					if(settings->textures){
 						for(pair<Fragment*, int> pair: lines){
-							for(int i = 0; i < pair.second; i++){
+							int x = pair.first->position.x, y = pair.first->position.y;
+							for(int i = 0; i < pair.second; i++, x++){
 								if(pair.first[i].material.ambientTexture != nullptr)
-									pair.first[i].material.ambient *= pair.first[i].material.ambientTexture->shade(fragments, pair.first[i].position.x, pair.first[i].position.y);
+									pair.first[i].material.ambient *= pair.first[i].material.ambientTexture->shade(fragments, x, y);
 								if(pair.first[i].material.diffuseTexture != nullptr)
-									pair.first[i].material.diffuse *= pair.first[i].material.diffuseTexture->shade(fragments, pair.first[i].position.x, pair.first[i].position.y);
+									pair.first[i].material.diffuse *= pair.first[i].material.diffuseTexture->shade(fragments, x, y);
 								if(pair.first[i].material.specularTexture != nullptr)
-									pair.first[i].material.specular *= pair.first[i].material.specularTexture->shade(fragments, pair.first[i].position.x, pair.first[i].position.y);
+									pair.first[i].material.specular *= pair.first[i].material.specularTexture->shade(fragments, x, y);
 							}
 						}
 					}
