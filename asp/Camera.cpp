@@ -127,20 +127,15 @@ namespace asp{
 				if(f1.position.y > f2.position.y)
 					swap(f1, f2);
 
-				cout << f0.position.x << ", " << f0.position.y << "\t"
-						<< f1.position.x << ", " << f1.position.y << "\t"
-						<< f2.position.x << ", " << f2.position.y << endl;
-
 				int dy01 = f1.position.y-f0.position.y;
 				int dy02 = f2.position.y-f0.position.y;
 				int dy12 = f2.position.y-f1.position.y;
 
 				forward_list<pair<Fragment*, int>> lines;
 
-				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01);
+				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01+2);
 				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
 				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
-				printf("%d %d %d\n", dy02, dy12, dy01);
 
 				if(settings->wireframe){
 					f0.normal = Vector3D{0, 0, -1};
@@ -165,7 +160,7 @@ namespace asp{
 						}
 						else{
 							Fragment fp1 = *lines.front().first;
-							Fragment fp2 = lines.front().first[lines.front().second];
+							Fragment fp2 = lines.front().first[lines.front().second-1];
 							if(fp1.position.x > fp2.position.x)
 								swap(fp1, fp2);
 
@@ -180,13 +175,20 @@ namespace asp{
 										end-start+2,
 										start-f1.position.x),
 								(int)f2.position.x-(int)f1.position.x+1));
+
+						if((int)f2.position.x >= viewPort.width ||
+								lines.front().first[lines.front().second-1].position.x >= viewPort.width ||
+								((int)f1.position.x == 999 && lines.front().second == 25))
+							printf("%f, %f\t%d\n",
+									f1.position.x, f1.position.y,
+									lines.front().second);
 					}
 					Fragment f1 = l02[dy02+1];
-					Fragment f2 = l12[dy12+1];
+					Fragment f2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
 					if(f1.position.x > f2.position.x)
 						swap(f1, f2);
 					int fp1 = lines.front().first->position.x;
-					int fp2 = lines.front().first[lines.front().second].position.x;
+					int fp2 = lines.front().first[lines.front().second-1].position.x;
 					if(fp1 > fp2)
 						swap(fp1, fp2);
 
@@ -194,7 +196,7 @@ namespace asp{
 							f1.position.x, f1,
 							f2.position.x, f2,
 							lines.front().second,
-							fp1-f1.position.x);
+							fp1-(int)f1.position.x);
 
 					if(settings->textures){
 						for(pair<Fragment*, int> pair: lines){
@@ -218,13 +220,17 @@ namespace asp{
 
 						if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
 							cout << "out " << x << " " << y << endl;
+							printf("%d, %d\t%d",
+									(int)pair.first->position.x, (int)pair.first->position.y,
+									pair.second);
+							cout << endl;
 							throw "pixel drawn out of bounds";
 						}
 
 						if(f.position.z >= depthInverse[x][y]){
 							depthInverse[x][y] = f.position.z;
 
-							if(!settings->wireframe && settings->shading && triangle.material.illuminationModel != 0){
+							if(settings->shading && triangle.material.illuminationModel != 0){
 								for(unsigned int i = 0; i < scene.lights.size(); i++)
 									lights[i]->diffuseShade(f);
 
