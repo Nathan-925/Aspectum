@@ -156,52 +156,43 @@ namespace asp{
 						int start, end;
 						if(lines.empty()){
 							start = f1.position.x;
-							end = f2.position.x;
+							end = f2.position.x+2;
 						}
 						else{
-							Fragment fp1 = *lines.front().first;
-							Fragment fp2 = lines.front().first[lines.front().second-1];
-							if(fp1.position.x > fp2.position.x)
-								swap(fp1, fp2);
+							int fp1 = lines.front().first->position.x;
+							int fp2 = fp1+lines.front().second;
 
-							start = min(f1.position.x, fp1.position.x);
-							end = max(f2.position.x, fp2.position.x);
+							start = min((int)f1.position.x, fp1);
+							end = max((int)f2.position.x+2, fp2+1);
 						}
 
 						lines.push_front(make_pair(
 								lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
 										f1.position.x, f1,
 										f2.position.x, f2,
-										end-start+2,
+										end-start,
 										start-f1.position.x),
-								(int)f2.position.x-(int)f1.position.x+1));
-
-						if((int)f2.position.x >= viewPort.width ||
-								lines.front().first[lines.front().second-1].position.x >= viewPort.width ||
-								((int)f1.position.x == 999 && lines.front().second == 25))
-							printf("%f, %f\t%d\n",
-									f1.position.x, f1.position.y,
-									lines.front().second);
+								(int)f2.position.x-(int)f1.position.x));
 					}
 					Fragment f1 = l02[dy02+1];
 					Fragment f2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
 					if(f1.position.x > f2.position.x)
 						swap(f1, f2);
 					int fp1 = lines.front().first->position.x;
-					int fp2 = lines.front().first[lines.front().second-1].position.x;
+					int fp2 = lines.front().first[lines.front().second].position.x;
 					if(fp1 > fp2)
 						swap(fp1, fp2);
 
-					lerp<Fragment>(fragments[(int)f1.position.y]+(int)f1.position.x,
+					lerp<Fragment>(fragments[(int)lines.front().first->position.y+1]+(int)f1.position.x,
 							f1.position.x, f1,
 							f2.position.x, f2,
-							lines.front().second,
+							lines.front().second+1,
 							fp1-(int)f1.position.x);
 
 					if(settings->textures){
 						for(pair<Fragment*, int> pair: lines){
 							int x = pair.first->position.x, y = pair.first->position.y;
-							for(int i = 0; i < pair.second; i++, x++){
+							for(int i = 0; i <= pair.second; i++, x++){
 								if(pair.first[i].material.ambientTexture != nullptr)
 									pair.first[i].material.ambient *= pair.first[i].material.ambientTexture->shade(fragments, x, y);
 								if(pair.first[i].material.diffuseTexture != nullptr)
@@ -215,7 +206,7 @@ namespace asp{
 
 				for(pair<Fragment*, int> pair: lines){
 					int x = pair.first->position.x, y = pair.first->position.y;
-					for(int i = 0; i < pair.second; i++, x++){
+					for(int i = 0; i <= pair.second; i++, x++){
 						Fragment f = pair.first[i];
 
 						if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){

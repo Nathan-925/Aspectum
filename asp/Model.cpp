@@ -153,11 +153,11 @@ namespace asp{
 												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
 
-		//Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFFFF, 0xFFFF, 0xFFFF00, 0xFF00FF};
-		//for(int i = 0; i < images.size(); i++)
+		//Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFF, 0xFFFF00, 0xFF00FF, 0xBBBBBB};
+		//for(unsigned int i = 0; i < images.size(); i++)
 		//	for(int j = 0; j < images[i].width; j++)
 		//		for(int l = 0; l < images[i].height; l++)
-		//			images[i][j][l] = c[i&7];
+		//			images[i][j][l] = c[i%(sizeof(c)/sizeof(Color))]/(i/(sizeof(c)/sizeof(Color))+1);
 	}
 
 	Color Texture::bilinear(int layer, double x, double y){
@@ -193,7 +193,8 @@ namespace asp{
 		if(settings->mipmapping){
 			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].position.z-texel;
 			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].position.z-texel;
-			double p = sqrt(max(dx.x*dx.x+dx.y*dx.y, dy.x*dy.x+dy.y*dy.y));
+			double nx = dx*dx, ny = dy*dy;
+			double p = sqrt(max(nx, ny));
 			baseMap = max(0.0, images.size()+min(-1.0, log2(p)));
 		}
 
@@ -225,7 +226,7 @@ namespace asp{
 		if(settings->filtering == settings->BILINEAR && min(images[baseMap].width, images[baseMap].height) > 1)
 			return bilinear(baseMap, xPos, yPos);
 
-		return images[baseMap][(int)(xPos*(images[baseMap].width-1))][images[baseMap].height-1-(int)(yPos*(images[baseMap].height-1))];
+		return images[(int)baseMap][(int)(xPos*(images[baseMap].width-1))][images[baseMap].height-1-(int)(yPos*(images[baseMap].height-1))];
 	}
 
 	Instance::Instance(Model* m) : model(m), transform() {};
