@@ -30,7 +30,7 @@ int main(){
 	settings.backFaceCulling = false;
 	settings.textures = true;
 	settings.textureSettings.mipmapping = true;
-	settings.textureSettings.filtering = settings.textureSettings.NONE;
+	settings.textureSettings.filtering = settings.textureSettings.TRILINEAR;
 	settings.shading = false;
 	settings.specular = true;
 
@@ -67,8 +67,8 @@ int main(){
 	model.triangles.back().material.diffuse = 0xFFFFFF;
 	model.triangles.back().material.alpha = 0.6;
 	//model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
-	model.triangles.back().material.diffuseTexture = &loader.textures.at("skeeter");
-	//model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
+	//model.triangles.back().material.diffuseTexture = &loader.textures.at("skeeter");
+	model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
 			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
 
 	model.triangles.emplace_back();
@@ -99,8 +99,8 @@ int main(){
 		for(int i = 0; i < 60; i++){
 			Instance* inst = new Instance(&model);
 			inst->transform *= rotateX(-M_PI/2);
-			inst->transform *= scale(5, 5, 5);
-			inst->transform *= translate(5*w-75, -5, 5*i+5);
+			inst->transform *= scale(10, 10, 10);
+			inst->transform *= translate(10*w-155, -5, 10*i+5);
 			scene.objects.push_back(inst);
 		}
 

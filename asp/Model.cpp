@@ -153,11 +153,11 @@ namespace asp{
 												  average(prev[i*2][j*2], prev[i*2+1][j*2]));
 		}
 
-		Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFF, 0xFFFF00, 0xFF00FF, 0xBBBBBB};
-		for(unsigned int i = 0; i < images.size(); i++)
-			for(int j = 0; j < images[i].width; j++)
-				for(int l = 0; l < images[i].height; l++)
-		 			images[i][j][l] = c[i%(sizeof(c)/sizeof(Color))]/(i/(sizeof(c)/sizeof(Color))+1);
+		//Color c[] = {0xFF, 0xFF00, 0xFF0000, 0xFFFF, 0xFFFF00, 0xFF00FF, 0xBBBBBB};
+		//for(unsigned int i = 0; i < images.size(); i++)
+		//	for(int j = 0; j < images[i].width; j++)
+		//		for(int l = 0; l < images[i].height; l++)
+		// 			images[i][j][l] = c[i%(sizeof(c)/sizeof(Color))]/(i/(sizeof(c)/sizeof(Color))+1);
 	}
 
 	Color Texture::bilinear(int layer, double x, double y){
@@ -195,6 +195,8 @@ namespace asp{
 			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].position.z-texel;
 			double nx = dx*dx, ny = dy*dy;
 			double p = sqrt(max(nx, ny));
+			if(p == 0)
+				p = 1;
 			baseMap = max(0.0, images.size()+min(-1.0, log2(p)));
 		}
 
