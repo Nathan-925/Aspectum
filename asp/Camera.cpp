@@ -168,37 +168,19 @@ namespace asp{
 										f1.position.x, f1,
 										f2.position.x, f2,
 										end-start,
-										start-f1.position.x),
+										start-(int)f1.position.x),
 								(int)f2.position.x-(int)f1.position.x));
 					}
 					Fragment f1 = l02[dy02+1];
 					Fragment f2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
 					if(f1.position.x > f2.position.x)
 						swap(f1, f2);
-					int fp1 = lines.front().first->position.x;
-					int fp2 = lines.front().first[lines.front().second].position.x;
-					if(fp1 > fp2)
-						swap(fp1, fp2);
 
 					lerp<Fragment>(fragments[(int)lines.front().first->position.y+1]+(int)f1.position.x,
 							f1.position.x, f1,
 							f2.position.x, f2,
 							lines.front().second+1,
-							fp1-(int)f1.position.x);
-
-					if(settings->textures){
-						for(pair<Fragment*, int> pair: lines){
-							int x = pair.first->position.x, y = pair.first->position.y;
-							for(int i = 0; i <= pair.second; i++, x++){
-								if(pair.first[i].material.ambientTexture != nullptr)
-									pair.first[i].material.ambient *= pair.first[i].material.ambientTexture->shade(fragments, x, y);
-								if(pair.first[i].material.diffuseTexture != nullptr)
-									pair.first[i].material.diffuse *= pair.first[i].material.diffuseTexture->shade(fragments, x, y);
-								if(pair.first[i].material.specularTexture != nullptr)
-									pair.first[i].material.specular *= pair.first[i].material.specularTexture->shade(fragments, x, y);
-							}
-						}
-					}
+							(int)lines.front().first->position.x-(int)f1.position.x);
 
 					for(pair<Fragment*, int> pair: lines){
 						int x = pair.first->position.x, y = pair.first->position.y;
@@ -216,6 +198,15 @@ namespace asp{
 
 							if(f.position.z >= depthInverse[x][y]){
 								depthInverse[x][y] = f.position.z;
+
+								if(settings->textures){
+									if(f.material.ambientTexture != nullptr)
+										f.material.ambient *= f.material.ambientTexture->shade(fragments, x, y);
+									if(f.material.diffuseTexture != nullptr)
+										f.material.diffuse *= f.material.diffuseTexture->shade(fragments, x, y);
+									if(f.material.specularTexture != nullptr)
+										f.material.specular *= f.material.specularTexture->shade(fragments, x, y);
+								}
 
 								if(settings->shading && triangle.material.illuminationModel != 0){
 									for(unsigned int i = 0; i < scene.lights.size(); i++)
