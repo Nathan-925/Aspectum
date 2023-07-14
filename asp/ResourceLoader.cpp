@@ -144,4 +144,8 @@ namespace asp{
 		file.close();
 	}
 
+	void ResourceLoader::addTexture(string name, Image image){
+		textures.emplace(name, Texture(image, textureSettings));
+	}
+
 }

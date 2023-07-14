@@ -27,6 +27,7 @@ namespace asp{
 
 		void readobj(std::string filename);
 		void readmtl(std::string fileName);
+		void addTexture(std::string name, priori::Image image);
 		void clear();
 	};
 

@@ -25,17 +25,6 @@ using namespace asp;
 
 int main(){
 
-	Fragment f1, f2;
-	f1.texel = Vector{0, 0};
-	f2.texel = Vector{10, -20};
-	Fragment* arr = lerp<Fragment>(0, f2, 10, f1, 11, -1);
-	for(int i = 0; i <= 10; i++)
-		cout << arr[i].texel.x << "," << arr[i].texel.y << " ";
-	cout << endl;
-
-	Color c1(0), c2(0xFFFFFF);
-	cout << hex << (uint32_t)lerp<Color>(0.3, c1, c2) << " " << (uint32_t)lerp<Color>(0.3, c2, c1) << dec << endl;
-
 	RenderSettings settings;
 	settings.wireframe = false;
 	settings.backFaceCulling = false;
@@ -45,13 +34,11 @@ int main(){
 	settings.shading = true;
 	settings.specular = true;
 
-	Color c(0.991102*255, 0.533276*255, 0.191202*255);
-	cout << (int)c.r << " " << (int)c.g << " " << (int)c.b << endl;
-
 	ResourceLoader loader;
 	loader.textureSettings = &settings.textureSettings;
-	//loader.textures.emplace("noe", readbmp("noe.bmp"));
-	//loader.textures.emplace("skeeter", readbmp("skeeter.bmp"));
+	loader.addTexture("noe", readbmp("noe.bmp"));
+	loader.addTexture("skeeter", readbmp("skeeter.bmp"));
+	loader.addTexture("wood", readbmp("wood.bmp"));
 
 
 	loader.readobj("mario/untitled.obj");
@@ -67,22 +54,6 @@ int main(){
 	//model.vertices.emplace_back();
 	//model.vertices.back().position = Vector3D{1, 1, 0, true};
 
-	//cout << hex << (uint32_t)model.materials["mario_face"].diffuse << " " << (uint32_t)model.materials["mario_eyes"].diffuseTexture->getColor(0, 0) << dec << endl;
-
-	for(Triangle &t: model->triangles){
-		t.material.illuminationModel = 2;
-		//if(t.material.diffuseTexture != nullptr){
-		//	t.material.diffuse = 0xFF00FF;
-		//	t.material.diffuseTexture = nullptr;
-		//}
-		t.material.ambient = t.material.diffuse;
-		t.material.specular = t.material.diffuse;
-		t.material.shine = 10;
-		t.material.ambientTexture = t.material.diffuseTexture;
-		//t.material.diffuseTexture = &skeeterTexture;
-		t.material.specularTexture = t.material.diffuseTexture;
-	}
-
 	//model.triangles.emplace_back();
 	//model.triangles.back().vertices[0] = 0;
 	//model.triangles.back().vertices[1] = 1;
@@ -96,10 +67,8 @@ int main(){
 	//model.triangles.back().material.diffuse = 0xFFFFFF;
 	//model.triangles.back().material.alpha = 0.6;
 	////model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
-	////Texture skeeterTexture = Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
-	////model.triangles.back().material.diffuseTexture = &skeeterTexture;
-	//Texture woodTexture = Texture(readbmp("wood.bmp"), &settings.textureSettings);
-	//model.triangles.back().material.diffuseTexture = &woodTexture;
+	////model.triangles.back().material.diffuseTexture = &loader.textures.at("skeeter");
+	//model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
 	//		//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
     //
 	//model.triangles.emplace_back();
@@ -155,23 +124,15 @@ int main(){
 
 	DirectionalLight dLight;
 	dLight.color = 0xFFFFFF;
-	dLight.intensity = 0.4;
-	dLight.vector = Vector3D{-1, 0, 1};
+	dLight.intensity = 0.5;
+	dLight.vector = Vector3D{-1, 0, 2};
 	scene.lights.push_back(&dLight);
 
 	PointLight pLight;
 	pLight.color = 0xFFFFFF;
-	pLight.intensity = 0.4;
-	pLight.point = Vector3D{-20, 20, 0, true};
+	pLight.intensity = 0.2;
+	pLight.point = Vector3D{-50, 50, 0, true};
 	scene.lights.push_back(&pLight);
-
-	//for(int i = 0; i < 60; i++){
-	//	Instance* inst = new Instance(&model);
-	//	scene.objects.push_back(inst);
-	//	inst->transform *= scale(5, 5, 5);
-	//	inst->transform *= rotateX(M_PI/4);
-	//	inst->transform *= translate(0, -5, 5*i);
-	//}
 
 	Camera camera(1000, 1000);
 	camera.settings = &settings;
