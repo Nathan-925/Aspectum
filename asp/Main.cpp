@@ -42,7 +42,7 @@ int main(){
 	settings.textures = true;
 	settings.textureSettings.mipmapping = false;
 	settings.textureSettings.filtering = settings.textureSettings.BILINEAR;
-	settings.shading = false;
+	settings.shading = true;
 	settings.specular = true;
 
 	Color c(0.991102*255, 0.533276*255, 0.191202*255);
@@ -56,64 +56,66 @@ int main(){
 
 	loader.readobj("mario/untitled.obj");
 	loader.readobj("cube/cube.obj");
-	//Model* model = &loader.models["cube/cube.obj"];
-	Model model;
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{0, 0, 0, true};
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{0, 1, 0, true};
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{1, 0, 0, true};
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{1, 1, 0, true};
+	Model* model = &loader.models["mario/untitled.obj"];
+	//Model model;
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{0, 0, 0, true};
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{0, 1, 0, true};
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{1, 0, 0, true};
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{1, 1, 0, true};
 
 	//cout << hex << (uint32_t)model.materials["mario_face"].diffuse << " " << (uint32_t)model.materials["mario_eyes"].diffuseTexture->getColor(0, 0) << dec << endl;
 
-	//for(Triangle &t: model->triangles){
-	//	t.material.illuminationModel = 2;
-	//	//if(t.material.diffuseTexture != nullptr){
-	//	//	t.material.diffuse = 0xFF00FF;
-	//	//	t.material.diffuseTexture = nullptr;
-	//	//}
-	//	t.material.ambient = t.material.diffuse;
-	//	t.material.specular = t.material.diffuse;
-	//	t.material.shine = 10;
-	//	t.material.ambientTexture = t.material.diffuseTexture;
-	//	//t.material.diffuseTexture = &skeeterTexture;
-	//	t.material.specularTexture = t.material.diffuseTexture;
-	//}
+	for(Triangle &t: model->triangles){
+		t.material.illuminationModel = 2;
+		//if(t.material.diffuseTexture != nullptr){
+		//	t.material.diffuse = 0xFF00FF;
+		//	t.material.diffuseTexture = nullptr;
+		//}
+		t.material.ambient = t.material.diffuse;
+		t.material.specular = t.material.diffuse;
+		t.material.shine = 10;
+		t.material.ambientTexture = t.material.diffuseTexture;
+		//t.material.diffuseTexture = &skeeterTexture;
+		t.material.specularTexture = t.material.diffuseTexture;
+	}
 
-	model.triangles.emplace_back();
-	model.triangles.back().vertices[0] = 0;
-	model.triangles.back().vertices[1] = 1;
-	model.triangles.back().vertices[2] = 2;
-	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	model.triangles.back().texels[0] = Vector{0, 0};
-	model.triangles.back().texels[1] = Vector{0, 1};
-	model.triangles.back().texels[2] = Vector{1, 0};
-	model.triangles.back().material.diffuse = 0xFFFFFF;
-	model.triangles.back().material.alpha = 0.6;
-	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
-	//Texture skeeterTexture = Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
-	//model.triangles.back().material.diffuseTexture = &skeeterTexture;
-			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
-
-	model.triangles.emplace_back();
-	model.triangles.back().vertices[0] = 3;
-	model.triangles.back().vertices[1] = 2;
-	model.triangles.back().vertices[2] = 1;
-	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	model.triangles.back().texels[0] = Vector{1, 1};
-	model.triangles.back().texels[1] = Vector{1, 0};
-	model.triangles.back().texels[2] = Vector{0, 1};
-	model.triangles.back().material.diffuse = 0xFFFFFF;
-	model.triangles.back().material.alpha = 0.6;
-
-	model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
+	//model.triangles.emplace_back();
+	//model.triangles.back().vertices[0] = 0;
+	//model.triangles.back().vertices[1] = 1;
+	//model.triangles.back().vertices[2] = 2;
+	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	//model.triangles.back().texels[0] = Vector{0, 0};
+	//model.triangles.back().texels[1] = Vector{0, 1};
+	//model.triangles.back().texels[2] = Vector{1, 0};
+	//model.triangles.back().material.diffuse = 0xFFFFFF;
+	//model.triangles.back().material.alpha = 0.6;
+	////model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
+	////Texture skeeterTexture = Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
+	////model.triangles.back().material.diffuseTexture = &skeeterTexture;
+	//Texture woodTexture = Texture(readbmp("wood.bmp"), &settings.textureSettings);
+	//model.triangles.back().material.diffuseTexture = &woodTexture;
+	//		//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
+    //
+	//model.triangles.emplace_back();
+	//model.triangles.back().vertices[0] = 3;
+	//model.triangles.back().vertices[1] = 2;
+	//model.triangles.back().vertices[2] = 1;
+	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	//model.triangles.back().texels[0] = Vector{1, 1};
+	//model.triangles.back().texels[1] = Vector{1, 0};
+	//model.triangles.back().texels[2] = Vector{0, 1};
+	//model.triangles.back().material.diffuse = 0xFFFFFF;
+	//model.triangles.back().material.alpha = 0.6;
+    //
+	//model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
 
 	Scene scene;
 
@@ -124,14 +126,14 @@ int main(){
 	//i.transform *= scale(2, 2, 1);
 	//scene.objects.push_back(&i);
 
-	for(int w = 0; w < 60; w++)
-		for(int i = 0; i < 120; i++){
-			Instance* inst = new Instance(&model);
-			inst->transform *= rotateX(-M_PI/2);
-			inst->transform *= scale(4, 4, 4);
-			inst->transform *= translate(4*w-122, -2, 4*i+2);
-			scene.objects.push_back(inst);
-		}
+	//for(int w = 0; w < 30; w++)
+	//	for(int i = 0; i < 60; i++){
+	//		Instance* inst = new Instance(&model);
+	//		inst->transform *= rotateX(-M_PI/2);
+	//		inst->transform *= scale(10, 10, 10);
+	//		inst->transform *= translate(10*w-155, -5, 10*i+7);
+	//		scene.objects.push_back(inst);
+	//	}
 
 	//for(int i = 0; i < 60; i++){
 	//	Instance* inst = new Instance(&model);
@@ -141,31 +143,27 @@ int main(){
 	//	scene.objects.push_back(inst);
 	//}
 
+	Instance i(model);
+	i.transform *= rotateY(M_PI*5/4);
+	i.transform *= translate(0, -75, 125);
+	scene.objects.push_back(&i);
+
 	Light aLight;
 	aLight.color = 0xFFFFFF;
-	aLight.intensity = 0.3;
+	aLight.intensity = 0.2;
 	scene.lights.push_back(&aLight);
 
 	DirectionalLight dLight;
 	dLight.color = 0xFFFFFF;
-	dLight.intensity = 0.3;
-	dLight.vector = Vector3D{0, 0, 1};
+	dLight.intensity = 0.4;
+	dLight.vector = Vector3D{-1, 0, 1};
 	scene.lights.push_back(&dLight);
 
 	PointLight pLight;
 	pLight.color = 0xFFFFFF;
-	pLight.intensity = 0.3;
-	pLight.point = Vector3D{20, -20, 0, true};
+	pLight.intensity = 0.4;
+	pLight.point = Vector3D{-20, 20, 0, true};
 	scene.lights.push_back(&pLight);
-
-	//Instance i(model);
-	////i.transform *= translate(0, -75, 0);
-	//i.transform *= scale(10, 10, 100);
-	////i.transform *= rotateX(-M_PI/8);
-	////i.transform *= rotateY(M_PI*7/6);
-	////i.transform *= rotateZ(M_PI/8);
-	//i.transform *= translate(0, -10, 50);
-	//scene.objects.push_back(&i);
 
 	//for(int i = 0; i < 60; i++){
 	//	Instance* inst = new Instance(&model);
@@ -186,10 +184,9 @@ int main(){
 	camera.render(scene);
 	cout << "end render" << endl;
 
-	settings.wireframe = true;
-	//for(Triangle &t: model.triangles){
-	//	t.material.diffuse = 0xFF00FF;
-	//	t.material.diffuseTexture = nullptr;
+	//settings.wireframe = true;
+	//for(Triangle &t: model->triangles){
+	//	t.material.diffuse = 0;
 	//}
 	//camera.render(scene);
 

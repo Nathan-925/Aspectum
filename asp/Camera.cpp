@@ -127,26 +127,23 @@ namespace asp{
 				if(f1.position.y > f2.position.y)
 					swap(f1, f2);
 
-				int dy01 = f1.position.y-f0.position.y;
-				int dy02 = f2.position.y-f0.position.y;
-				int dy12 = f2.position.y-f1.position.y;
-
-				forward_list<pair<Fragment*, int>> lines;
-
-				Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01+2);
-				Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
-				Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
-
 				if(settings->wireframe){
-					f0.normal = Vector3D{0, 0, -1};
-					f1.normal = Vector3D{0, 0, -1};
-					f2.normal = Vector3D{0, 0, -1};
-
-					lines.push_front(make_pair(l01, dy01));
-					lines.push_front(make_pair(l02, dy02));
-					lines.push_front(make_pair(l12, dy12));
+					drawTriangle(viewPort, triangle.material.diffuse,
+							Vector{f0.position.x, f0.position.y},
+							Vector{f1.position.x, f1.position.y},
+							Vector{f2.position.x, f2.position.y});
 				}
 				else{
+					int dy01 = f1.position.y-f0.position.y;
+					int dy02 = f2.position.y-f0.position.y;
+					int dy12 = f2.position.y-f1.position.y;
+
+					forward_list<pair<Fragment*, int>> lines;
+
+					Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01+2);
+					Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
+					Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
+
 					for(int i = 0; i <= dy02; i++){
 						Fragment f1 = l02[i];
 						Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
@@ -202,40 +199,40 @@ namespace asp{
 							}
 						}
 					}
-				}
 
-				for(pair<Fragment*, int> pair: lines){
-					int x = pair.first->position.x, y = pair.first->position.y;
-					for(int i = 0; i <= pair.second; i++, x++){
-						Fragment f = pair.first[i];
+					for(pair<Fragment*, int> pair: lines){
+						int x = pair.first->position.x, y = pair.first->position.y;
+						for(int i = 0; i <= pair.second; i++, x++){
+							Fragment f = pair.first[i];
 
-						if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
-							cout << "out " << x << " " << y << endl;
-							printf("%d, %d\t%d",
-									(int)pair.first->position.x, (int)pair.first->position.y,
-									pair.second);
-							cout << endl;
-							throw "pixel drawn out of bounds";
-						}
-
-						if(f.position.z >= depthInverse[x][y]){
-							depthInverse[x][y] = f.position.z;
-
-							if(settings->shading && triangle.material.illuminationModel != 0){
-								for(unsigned int i = 0; i < scene.lights.size(); i++)
-									lights[i]->diffuseShade(f);
-
-								if(settings->specular && triangle.material.illuminationModel >= 2)
-									for(unsigned int i = 0; i < scene.lights.size(); i++)
-										lights[i]->specularShade(f);
+							if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
+								cout << "out " << x << " " << y << endl;
+								printf("%d, %d\t%d",
+										(int)pair.first->position.x, (int)pair.first->position.y,
+										pair.second);
+								cout << endl;
+								throw "pixel drawn out of bounds";
 							}
-							else
-								f.color = f.material.diffuse;
 
-							for(void (*shader)(Fragment&): fragmentShaders)
-								shader(f);
+							if(f.position.z >= depthInverse[x][y]){
+								depthInverse[x][y] = f.position.z;
 
-							viewPort[x][y] = f.color;
+								if(settings->shading && triangle.material.illuminationModel != 0){
+									for(unsigned int i = 0; i < scene.lights.size(); i++)
+										lights[i]->diffuseShade(f);
+
+									if(settings->specular && triangle.material.illuminationModel >= 2)
+										for(unsigned int i = 0; i < scene.lights.size(); i++)
+											lights[i]->specularShade(f);
+								}
+								else
+									f.color = f.material.diffuse;
+
+								for(void (*shader)(Fragment&): fragmentShaders)
+									shader(f);
+
+								viewPort[x][y] = f.color;
+							}
 						}
 					}
 				}
