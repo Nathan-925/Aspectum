@@ -30,7 +30,7 @@ int main(){
 	settings.backFaceCulling = false;
 	settings.textures = true;
 	settings.textureSettings.mipmapping = true;
-	settings.textureSettings.filtering = settings.textureSettings.TRILINEAR;
+	settings.textureSettings.filtering = settings.textureSettings.NONE;
 	settings.shading = false;
 	settings.specular = true;
 
@@ -71,20 +71,20 @@ int main(){
 	model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
 			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
 
-	model.triangles.emplace_back();
-	model.triangles.back().vertices[0] = 3;
-	model.triangles.back().vertices[1] = 2;
-	model.triangles.back().vertices[2] = 1;
-	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	model.triangles.back().texels[0] = Vector{1, 1};
-	model.triangles.back().texels[1] = Vector{1, 0};
-	model.triangles.back().texels[2] = Vector{0, 1};
-	model.triangles.back().material.diffuse = 0xFFFFFF;
-	model.triangles.back().material.alpha = 0.6;
-
-	model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
+	//model.triangles.emplace_back();
+	//model.triangles.back().vertices[0] = 3;
+	//model.triangles.back().vertices[1] = 2;
+	//model.triangles.back().vertices[2] = 1;
+	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	//model.triangles.back().texels[0] = Vector{1, 1};
+	//model.triangles.back().texels[1] = Vector{1, 0};
+	//model.triangles.back().texels[2] = Vector{0, 1};
+	//model.triangles.back().material.diffuse = 0xFFFFFF;
+	//model.triangles.back().material.alpha = 0.6;
+    //
+	//model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
 
 	Scene scene;
 
@@ -100,7 +100,7 @@ int main(){
 			Instance* inst = new Instance(&model);
 			inst->transform *= rotateX(-M_PI/2);
 			inst->transform *= scale(10, 10, 10);
-			inst->transform *= translate(10*w-155, -5, 10*i+5);
+			inst->transform *= translate(11*w-155, -5, 11*i+5);
 			scene.objects.push_back(inst);
 		}
 

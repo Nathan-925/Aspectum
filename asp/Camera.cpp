@@ -13,6 +13,7 @@
 
 #include "priori/Math.h"
 #include "priori/Math3D.h"
+#include "priori/BMPLibrary.h"
 
 using namespace std;
 using namespace priori;
@@ -64,6 +65,11 @@ namespace asp{
 
 	void Camera::render(const Scene &scene){
 		cout << "render" << endl;
+
+		Image debug(viewPort.width+2, viewPort.height+2);
+		for(int i = 0; i < debug.width; i++)
+			for(int j = 0; j < debug.height; j++)
+				debug[i][j] = 0xFFFFFF;
 
 		TransformationMatrix cameraMatrix = translate(-position.x, -position.y, -position.z)*
 											rotateY(ry)*
@@ -170,12 +176,19 @@ namespace asp{
 										end-start,
 										start-(int)f1.position.x),
 								(int)f2.position.x-(int)f1.position.x));
+
+						for(int j = 0; j < end-start; j++)
+							debug[start+j][(int)f1.position.y] = 0xFF0000;
+						for(int j = 0; j <= lines.front().second; j++)
+							debug[(int)f1.position.x+j][(int)f1.position.y] = 0xFF;
 					}
 					Fragment f1 = l02[dy02+1];
 					Fragment f2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
 					if(f1.position.x > f2.position.x)
 						swap(f1, f2);
 
+					for(int j = 0; j <= lines.front().second; j++)
+							debug[(int)lines.front().first->position.x+j][(int)lines.front().first->position.y+1] = 0xFF0000;
 					lerp<Fragment>(fragments[(int)lines.front().first->position.y+1]+(int)f1.position.x,
 							f1.position.x, f1,
 							f2.position.x, f2,
@@ -232,6 +245,8 @@ namespace asp{
 				delete lights[i];
 			delete[] lights;
 		}
+
+		writebmp("debug.bmp", debug);
 	}
 
 	void Camera::clear(){
