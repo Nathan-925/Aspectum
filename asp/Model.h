@@ -51,6 +51,7 @@ class Texture;
 	};
 
 	class Camera;
+	extern priori::Image* debug;
 
 	struct Fragment{
 		Camera* camera;
@@ -59,6 +60,8 @@ class Texture;
 		priori::Vector3D normal;
 		priori::Color color;
 		Material material;
+
+		~Fragment();
 
 		Fragment operator+(Fragment other) const;
 		Fragment operator-(Fragment other) const;

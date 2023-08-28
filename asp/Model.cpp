@@ -13,6 +13,8 @@ using namespace priori;
 
 namespace asp{
 
+	priori::Image* debug;
+
 	Vertex Vertex::operator+(Vertex other) const{
 		other.position += position;
 		return other;
@@ -63,6 +65,10 @@ namespace asp{
 	Vertex operator*=(Vertex &vertex, const priori::TransformationMatrix &transform){
 		vertex.position = transform*vertex.position;
 		return vertex;
+	}
+
+	Fragment::~Fragment(){
+		debug->pixels[(int)position.x][(int)position.y] = Color(255*texel.x, 0, 255*texel.y);
 	}
 
 	Fragment Fragment::operator+(Fragment other) const{
@@ -193,8 +199,14 @@ namespace asp{
 		if(settings->mipmapping){
 			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].position.z-texel;
 			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].position.z-texel;
+
 			double nx = dx*dx, ny = dy*dy;
 			double p = sqrt(nx);
+
+			//return Color(255*texel.x, 0, 255*texel.y);
+			//return Color(255*(fragment[y][x+1].texel.x/fragment[y][x+1].position.z), 0, 255*(fragment[y+1][x].texel.y/fragment[y+1][x].position.z));
+			//return Color(255*sqrt(nx), 0, 255*sqrt(ny));
+
 			if(p == 0)
 				p = 1;
 			baseMap = max(0.0, images.size()+min(-1.0, log2(p)));

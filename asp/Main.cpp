@@ -88,21 +88,21 @@ int main(){
 
 	Scene scene;
 
-	//Instance i(&model);
-	//i.transform *= rotateX(-M_PI/2);
-	//i.transform *= translate(0, 0, 0);
-	////i.transform *= rotateZ(M_PI/6);
-	//i.transform *= scale(2, 2, 1);
-	//scene.objects.push_back(&i);
+	Instance i(&model);
+	i.transform *= rotateX(-M_PI/2);
+	i.transform *= scale(2, 2, 1);
+	i.transform *= translate(0, -2, 3);
+	//i.transform *= rotateZ(M_PI/6);
+	scene.objects.push_back(&i);
 
-	for(int w = 0; w < 30; w++)
-		for(int i = 0; i < 60; i++){
-			Instance* inst = new Instance(&model);
-			inst->transform *= rotateX(-M_PI/2);
-			inst->transform *= scale(10, 10, 10);
-			inst->transform *= translate(11*w-155, -5, 11*i+5);
-			scene.objects.push_back(inst);
-		}
+	//for(int w = 0; w < 30; w++)
+	//	for(int i = 0; i < 60; i++){
+	//		Instance* inst = new Instance(&model);
+	//		inst->transform *= rotateX(-M_PI/2);
+	//		inst->transform *= scale(10, 10, 10);
+	//		inst->transform *= translate(11*w-155, -5, 11*i+5);
+	//		scene.objects.push_back(inst);
+	//	}
 
 	//for(int i = 0; i < 60; i++){
 	//	Instance* inst = new Instance(&model);
