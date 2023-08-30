@@ -61,8 +61,6 @@ class Texture;
 		priori::Color color;
 		Material material;
 
-		~Fragment();
-
 		Fragment operator+(Fragment other) const;
 		Fragment operator-(Fragment other) const;
 

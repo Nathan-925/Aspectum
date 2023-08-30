@@ -67,10 +67,6 @@ namespace asp{
 		return vertex;
 	}
 
-	Fragment::~Fragment(){
-		debug->pixels[(int)position.x][(int)position.y] = Color(255*texel.x, 0, 255*texel.y);
-	}
-
 	Fragment Fragment::operator+(Fragment other) const{
 		other.position += position;
 		other.texel += texel;
@@ -201,7 +197,7 @@ namespace asp{
 			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].position.z-texel;
 
 			double nx = dx*dx, ny = dy*dy;
-			double p = sqrt(nx);
+			double p = sqrt(max(nx, ny));
 
 			//return Color(255*texel.x, 0, 255*texel.y);
 			//return Color(255*(fragment[y][x+1].texel.x/fragment[y][x+1].position.z), 0, 255*(fragment[y+1][x].texel.y/fragment[y+1][x].position.z));

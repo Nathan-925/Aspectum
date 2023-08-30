@@ -23,6 +23,11 @@ using namespace std;
 using namespace priori;
 using namespace asp;
 
+void debugShader(Fragment& fragment){
+	Vector texel = fragment.texel/fragment.position.z;
+	fragment.color = Color(255*texel.x, 0, 255*texel.y);
+}
+
 int main(){
 
 	RenderSettings settings;
@@ -71,38 +76,38 @@ int main(){
 	model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
 			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
 
-	//model.triangles.emplace_back();
-	//model.triangles.back().vertices[0] = 3;
-	//model.triangles.back().vertices[1] = 2;
-	//model.triangles.back().vertices[2] = 1;
-	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	//model.triangles.back().texels[0] = Vector{1, 1};
-	//model.triangles.back().texels[1] = Vector{1, 0};
-	//model.triangles.back().texels[2] = Vector{0, 1};
-	//model.triangles.back().material.diffuse = 0xFFFFFF;
-	//model.triangles.back().material.alpha = 0.6;
-    //
-	//model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
+	model.triangles.emplace_back();
+	model.triangles.back().vertices[0] = 3;
+	model.triangles.back().vertices[1] = 2;
+	model.triangles.back().vertices[2] = 1;
+	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	model.triangles.back().texels[0] = Vector{1, 1};
+	model.triangles.back().texels[1] = Vector{1, 0};
+	model.triangles.back().texels[2] = Vector{0, 1};
+	model.triangles.back().material.diffuse = 0xFFFFFF;
+	model.triangles.back().material.alpha = 0.6;
+
+	model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
 
 	Scene scene;
 
-	Instance i(&model);
-	i.transform *= rotateX(-M_PI/2);
-	i.transform *= scale(2, 2, 1);
-	i.transform *= translate(0, -2, 3);
-	//i.transform *= rotateZ(M_PI/6);
-	scene.objects.push_back(&i);
+	//Instance i(&model);
+	//i.transform *= rotateX(-M_PI/2);
+	//i.transform *= scale(2, 2, 1);
+	//i.transform *= translate(0, -2, 3);
+	////i.transform *= rotateZ(M_PI/6);
+	//scene.objects.push_back(&i);
 
-	//for(int w = 0; w < 30; w++)
-	//	for(int i = 0; i < 60; i++){
-	//		Instance* inst = new Instance(&model);
-	//		inst->transform *= rotateX(-M_PI/2);
-	//		inst->transform *= scale(10, 10, 10);
-	//		inst->transform *= translate(11*w-155, -5, 11*i+5);
-	//		scene.objects.push_back(inst);
-	//	}
+	for(int w = 0; w < 30; w++)
+		for(int i = 0; i < 60; i++){
+			Instance* inst = new Instance(&model);
+			inst->transform *= rotateX(-M_PI/2);
+			inst->transform *= scale(9, 9, 9);
+			inst->transform *= translate(10*w-154.5, -5, 10*i+5.5);
+			scene.objects.push_back(inst);
+		}
 
 	//for(int i = 0; i < 60; i++){
 	//	Instance* inst = new Instance(&model);
@@ -142,14 +147,15 @@ int main(){
 	//camera.ry = M_PI/4;
 	//camera.rx = M_PI/6;
 
+	//camera.fragmentShaders.push_back(debugShader);
 	camera.render(scene);
 	cout << "end render" << endl;
 
-	//settings.wireframe = true;
-	//for(Triangle &t: model.triangles){
-	//	t.material.diffuse = 0;
-	//}
-	//camera.render(scene);
+	settings.wireframe = true;
+	for(Triangle &t: model.triangles){
+		t.material.diffuse = 0;
+	}
+	camera.render(scene);
 
 	writebmp("test.bmp", camera.viewPort);
 	cout << "end program" << endl;
