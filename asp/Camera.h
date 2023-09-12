@@ -32,6 +32,7 @@ namespace asp{
 		double** depthInverse;
 
 		Fragment project(const Vertex &vertex, priori::Vector3D normal, priori::Vector texel, const Material &material);
+		void cull(std::vector<Vertex> vertices, std::forward_list<Triangle> triangles);
 
 	public:
 		double focalLength;

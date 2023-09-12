@@ -64,6 +64,15 @@ namespace asp{
 						material};
 	}
 
+	void Camera::cull(vector<Vertex> vertices, forward_list<Triangle> triangles){
+		for(Triangle t: triangles){
+			for(int i = 0; i < 3; i++){
+				Vector3D p = vertices[t.vertices[i]].position;
+
+			}
+		}
+	}
+
 	void Camera::setFOV(double fov){
 		focalLength = (viewPort.width-1)/(2*tan(fov*(M_PI/360)));
 	}
