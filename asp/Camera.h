@@ -26,6 +26,9 @@ namespace asp{
 		TextureSettings textureSettings;
 		bool shading = true;
 		bool specular = true;
+		enum{
+			ORTHOGRAPHIC, PERSPECTIVE
+		} projection = PERSPECTIVE;
 	};
 
 	class Camera{
@@ -35,7 +38,8 @@ namespace asp{
 		void cull(std::vector<Vertex> vertices, std::forward_list<Triangle> triangles);
 
 	public:
-		double focalLength;
+		int width, height;
+		double focalLength, drawDistance;
 		priori::Image viewPort;
 		Fragment** fragments;
 		RenderSettings* settings;

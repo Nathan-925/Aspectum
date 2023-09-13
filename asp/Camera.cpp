@@ -22,6 +22,8 @@ namespace asp{
 
 	Camera::Camera(int width, int height) :
 			depthInverse(new double*[width]),
+			width(1000), height(1000),
+			drawDistance(1000),
 			viewPort(width, height),
 			settings(),
 			position{0, 0, 0, true},
@@ -54,10 +56,20 @@ namespace asp{
 	}
 
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, priori::Vector texel, const Material &material){
+		Vector3D pos;
+		if(settings->projection == settings->PERSPECTIVE){
+			pos = Vector3D{(2*vertex.position.x*focalLength)/(width*vertex.position.z),
+						   (2*vertex.position.y*focalLength)/(width*vertex.position.z),
+						   (2*(vertex.position.z-focalLength))/drawDistance-1, true};
+		}
+		else if(settings->projection == settings->ORTHOGRAPHIC){
+			pos = Vector3D{vertex.position.x*focalLength,
+						   vertex.position.y,
+						   1/vertex.position.z, true};
+		}
+
 		return Fragment{this,
-						Vector3D{(double)((int)(viewPort.width/2+((vertex.position.x*focalLength)/vertex.position.z))),
-								 (double)((int)(viewPort.height/2+((vertex.position.y*focalLength)/vertex.position.z))),
-								 1/vertex.position.z, true},
+						pos,
 						texel/vertex.position.z,
 						normal.normalize(),
 						0,
@@ -109,6 +121,29 @@ namespace asp{
 			for(VertexShader shader: vertexShaders)
 				for(Vertex &v: vertices)
 					shader(v);
+
+			for(Vertex &v: vertices){
+				if(settings->projection == settings->PERSPECTIVE){
+					v.position = Vector3D{(2*v.position.x*focalLength)/(width*v.position.z),
+										  (2*v.position.y*focalLength)/(width*v.position.z),
+										  (2*(v.position.z-focalLength))/drawDistance-1, true};
+				}
+				else if(settings->projection == settings->ORTHOGRAPHIC){
+					v.position = Vector3D{v.position.x,
+										  v.position.y,
+										  v.position.z, true};
+				}
+			}
+
+			for(Triangle &t: triangles){
+				int cnt = 0;
+				for(int i = 0; i < 3; i++){
+					Vertex v = vertices[(i+1)%3];
+					if(abs(v.position.x) > 1 || abs(v.position.y) > 1 || abs(v.position.z) > 1){
+
+					}
+				}
+			}
 
 			//culling
 			if(settings->backFaceCulling)
