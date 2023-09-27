@@ -31,6 +31,7 @@ void debugShader(Fragment& fragment){
 int main(){
 
 	RenderSettings settings;
+	settings.projection = settings.PERSPECTIVE;
 	settings.wireframe = false;
 	settings.backFaceCulling = false;
 	settings.textures = true;

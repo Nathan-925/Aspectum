@@ -57,16 +57,9 @@ namespace asp{
 
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, priori::Vector texel, const Material &material){
 		Vector3D pos;
-		if(settings->projection == settings->PERSPECTIVE){
-			pos = Vector3D{(2*vertex.position.x*focalLength)/(width*vertex.position.z),
-						   (2*vertex.position.y*focalLength)/(width*vertex.position.z),
-						   (2*(vertex.position.z-focalLength))/drawDistance-1, true};
-		}
-		else if(settings->projection == settings->ORTHOGRAPHIC){
-			pos = Vector3D{vertex.position.x*focalLength,
-						   vertex.position.y,
-						   1/vertex.position.z, true};
-		}
+		pos.x = (viewPort.width-1)*(vertex.position.x+1)/2;
+		pos.y = (viewPort.height-1)*(vertex.position.y+1)/2;
+		pos.z = 1/vertex.position.z;
 
 		return Fragment{this,
 						pos,
@@ -126,7 +119,7 @@ namespace asp{
 				if(settings->projection == settings->PERSPECTIVE){
 					v.position = Vector3D{(2*v.position.x*focalLength)/(width*v.position.z),
 										  (2*v.position.y*focalLength)/(width*v.position.z),
-										  (2*(v.position.z-focalLength))/drawDistance-1, true};
+										  v.position.z, true};
 				}
 				else if(settings->projection == settings->ORTHOGRAPHIC){
 					v.position = Vector3D{v.position.x,
@@ -135,34 +128,33 @@ namespace asp{
 				}
 			}
 
-			for(Triangle &t: triangles){
-				int cnt = 0;
-				for(int i = 0; i < 3; i++){
-					Vertex v = vertices[(i+1)%3];
-					if(abs(v.position.x) > 1 || abs(v.position.y) > 1 || abs(v.position.z) > 1){
 
-					}
-				}
-			}
+			CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{1, 0, 0, false}, 1},
+									 	    CullingPlane{Vector3D{-1, 0, 0, false}, 1},
+											CullingPlane{Vector3D{0, 1, 0, false}, 1},
+											CullingPlane{Vector3D{0, -1, 0, false}, 1},
+											CullingPlane{Vector3D{0, 0, 1, false}, 0}};
+			for(CullingPlane plane: cullingPlanes)
+				plane.cull(vertices, triangles);
 
 			//culling
 			if(settings->backFaceCulling)
 				cullBackFaces(vertices, triangles);
 
-			double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
-			double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
-
-			double xCos = cos(xAngle), yCos = cos(yAngle);
-			double xSin = sin(xAngle), ySin = sin(yAngle);
-
-			CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{0, 0, 1, false}, -1},
-									 	    CullingPlane{Vector3D{xCos, 0, xSin, false}, 0},
-											CullingPlane{Vector3D{-xCos, 0, xSin, false}, 0},
-											CullingPlane{Vector3D{0, yCos, ySin, false}, 0},
-											CullingPlane{Vector3D{0, -yCos, ySin, false}, 0}};
-
-			for(CullingPlane plane: cullingPlanes)
-				plane.cull(vertices, triangles);
+			//double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
+			//double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
+            //
+			//double xCos = cos(xAngle), yCos = cos(yAngle);
+			//double xSin = sin(xAngle), ySin = sin(yAngle);
+            //
+			//CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{0, 0, 1, false}, -1},
+			//						 	    CullingPlane{Vector3D{xCos, 0, xSin, false}, 0},
+			//								CullingPlane{Vector3D{-xCos, 0, xSin, false}, 0},
+			//								CullingPlane{Vector3D{0, yCos, ySin, false}, 0},
+			//								CullingPlane{Vector3D{0, -yCos, ySin, false}, 0}};
+            //
+			//for(CullingPlane plane: cullingPlanes)
+			//	plane.cull(vertices, triangles);
 			//cout << "culled" << endl;
 
 			for(Triangle &triangle: triangles){
