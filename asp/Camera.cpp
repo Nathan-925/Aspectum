@@ -136,6 +136,13 @@ namespace asp{
 											CullingPlane{Vector3D{0, 0, 1, false}, 0}};
 			for(CullingPlane plane: cullingPlanes)
 				plane.cull(vertices, triangles);
+			for(Triangle t: triangles){
+				for(int i = 0; i < 3; i++){
+					Vertex v = vertices[t.vertices[i]];
+					printf("%.2f %.2f %.2f\n", v.position.x, v.position.y, v.position.z);
+				}
+				cout << endl;
+			}
 
 			//culling
 			if(settings->backFaceCulling)
@@ -161,6 +168,10 @@ namespace asp{
 				Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.texels[0], triangle.material),
 						 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.texels[1], triangle.material),
 						 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.texels[2], triangle.material);
+				printf("%.2f %.2f %.2f\n", f0.position.x, f0.position.y, f0.position.z);
+				printf("%.2f %.2f %.2f\n", f1.position.x, f1.position.y, f1.position.z);
+				printf("%.2f %.2f %.2f\n", f2.position.x, f2.position.y, f2.position.z);
+				cout << endl;
 
 				if(f0.position.y > f1.position.y)
 					swap(f0, f1);
