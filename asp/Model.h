@@ -55,7 +55,8 @@ class Texture;
 
 	struct Fragment{
 		Camera* camera;
-		priori::Vector3D position;
+		int x, y;
+		double z;
 		priori::Vector texel;
 		priori::Vector3D normal;
 		priori::Color color;

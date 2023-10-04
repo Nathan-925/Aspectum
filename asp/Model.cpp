@@ -68,28 +68,36 @@ namespace asp{
 	}
 
 	Fragment Fragment::operator+(Fragment other) const{
-		other.position += position;
+		other.x += x;
+		other.y += y;
+		other.z += z;
 		other.texel += texel;
 		other.normal += normal;
 		return other;
 	}
 
 	Fragment Fragment::operator-(Fragment other) const{
-		other.position = position-other.position;
+		other.x = x-other.x;
+		other.y = y-other.y;
+		other.z = z-other.z;
 		other.texel = texel-other.texel;
 		other.normal = normal-other.normal;
 		return other;
 	}
 
 	Fragment Fragment::operator+=(const Fragment &other){
-		position += other.position;
+		x += other.x;
+		y += other.y;
+		z += other.z;
 		texel += other.texel;
 		normal += other.normal;
 		return *this;
 	}
 
 	Fragment Fragment::operator-=(const Fragment &other){
-		position -= other.position;
+		x -= other.x;
+		y -= other.y;
+		z -= other.z;
 		texel -= other.texel;
 		normal -= other.normal;
 		return *this;
@@ -97,7 +105,9 @@ namespace asp{
 
 	Fragment Fragment::operator*(const double &d) const{
 		Fragment out(*this);
-		out.position *= d;
+		out.x *= d;
+		out.y *= d;
+		out.z *= d;
 		out.texel *= d;
 		out.normal *= d;
 		return out;
@@ -105,21 +115,27 @@ namespace asp{
 
 	Fragment Fragment::operator/(const double &d) const{
 		Fragment out(*this);
-		out.position /= d;
+		out.x /= d;
+		out.y /= d;
+		out.z /= d;
 		out.texel /= d;
 		out.normal /= d;
 		return out;
 	}
 
 	Fragment Fragment::operator*=(const double &d){
-		position *= d;
+		x *= d;
+		y *= d;
+		z *= d;
 		texel *= d;
 		normal *= d;
 		return *this;
 	}
 
 	Fragment Fragment::operator/=(const double &d){
-		position /= d;
+		x /= d;
+		y /= d;
+		z /= d;
 		texel /= d;
 		normal /= d;
 		return *this;
@@ -180,21 +196,21 @@ namespace asp{
 	}
 
 	Color Texture::shade(Fragment** fragment, int x, int y){
-		int c = 0;
-		if(fragment[y][x].material.alpha == 0.6)
-			c |= 0xFF;
-		if(fragment[y+1][x].material.alpha == 0.6)
-			c |=  0xFF00;
-		if(fragment[y][x+1].material.alpha == 0.6)
-			c |=  0xFF0000;
-		return Color(c)*0.8;
+		//int c = 0;
+		//if(fragment[y][x].material.alpha == 0.6)
+		//	c |= 0xFF;
+		//if(fragment[y+1][x].material.alpha == 0.6)
+		//	c |=  0xFF00;
+		//if(fragment[y][x+1].material.alpha == 0.6)
+		//	c |=  0xFF0000;
+		//return Color(c)*0.8;
 
-		Vector texel = fragment[y][x].texel/fragment[y][x].position.z;
+		Vector texel = fragment[y][x].texel/fragment[y][x].z;
 		double baseMap = 0;
 
 		if(settings->mipmapping){
-			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].position.z-texel;
-			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].position.z-texel;
+			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].z-texel;
+			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].z-texel;
 
 			double nx = dx*dx, ny = dy*dy;
 			double p = sqrt(max(nx, ny));

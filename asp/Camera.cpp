@@ -56,13 +56,12 @@ namespace asp{
 	}
 
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, priori::Vector texel, const Material &material){
-		Vector3D pos;
-		pos.x = (viewPort.width-1)*(vertex.position.x+1)/2;
-		pos.y = (viewPort.height-1)*(vertex.position.y+1)/2;
-		pos.z = 1/vertex.position.z;
+		int x = (viewPort.width-1)*(vertex.position.x+1)/2;
+		int y = (viewPort.height-1)*(vertex.position.y+1)/2;
+		double z = 1/vertex.position.z;
 
 		return Fragment{this,
-						pos,
+						x, y, z,
 						texel/vertex.position.z,
 						normal.normalize(),
 						0,
@@ -76,6 +75,73 @@ namespace asp{
 
 			}
 		}
+	}
+
+	forward_list<pair<Fragment*, int>> Camera::createFragment(vector<Vertex> vertices, Triangle triangle){
+		Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.texels[0], triangle.material),
+				 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.texels[1], triangle.material),
+				 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.texels[2], triangle.material);
+		printf("%d %d %.2f\n", f0.x, f0.y, f0.z);
+		printf("%d %d %.2f\n", f1.x, f1.y, f1.z);
+		printf("%d %d %.2f\n", f2.x, f2.y, f2.z);
+		cout << endl;
+
+		if(f0.y > f1.y)
+			swap(f0, f1);
+		if(f0.y > f2.y)
+			swap(f0, f2);
+		if(f1.y > f2.y)
+			swap(f1, f2);
+
+		int dy01 = f1.y-f0.y;
+		int dy02 = f2.y-f0.y;
+		int dy12 = f2.y-f1.y;
+
+		forward_list<pair<Fragment*, int>> lines;
+
+		Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01+2);
+		Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
+		Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
+
+		for(int i = 0; i <= dy02; i++){
+			Fragment f1 = l02[i];
+			Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
+			if(f1.x > f2.x)
+				swap(f1, f2);
+
+			int start, end;
+			if(lines.empty()){
+				start = f1.x;
+				end = f2.x+2;
+			}
+			else{
+				int fp1 = lines.front().first->x;
+				int fp2 = fp1+lines.front().second;
+
+				start = min((int)f1.x, fp1);
+				end = max((int)f2.x+2, fp2+1);
+			}
+
+			lines.push_front(make_pair(
+					lerp<Fragment>(fragments[(int)l02[0].y+i]+(int)f1.x,
+							f1.x, f1,
+							f2.x, f2,
+							end-start,
+							start-(int)f1.x),
+					(int)f2.x-(int)f1.x));
+		}
+		Fragment fn1 = l02[dy02+1];
+		Fragment fn2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
+		if(fn1.x > fn2.x)
+			swap(fn1, fn2);
+
+		lerp<Fragment>(fragments[(int)lines.front().first->y+1]+(int)fn1.x,
+				fn1.x, fn1,
+				fn2.x, fn2,
+				lines.front().second+1,
+				(int)lines.front().first->x-(int)fn1.x);
+
+		return lines;
 	}
 
 	void Camera::setFOV(double fov){
@@ -165,92 +231,32 @@ namespace asp{
 			//cout << "culled" << endl;
 
 			for(Triangle &triangle: triangles){
-				Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.texels[0], triangle.material),
-						 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.texels[1], triangle.material),
-						 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.texels[2], triangle.material);
-				printf("%.2f %.2f %.2f\n", f0.position.x, f0.position.y, f0.position.z);
-				printf("%.2f %.2f %.2f\n", f1.position.x, f1.position.y, f1.position.z);
-				printf("%.2f %.2f %.2f\n", f2.position.x, f2.position.y, f2.position.z);
-				cout << endl;
-
-				if(f0.position.y > f1.position.y)
-					swap(f0, f1);
-				if(f0.position.y > f2.position.y)
-					swap(f0, f2);
-				if(f1.position.y > f2.position.y)
-					swap(f1, f2);
 
 				if(settings->wireframe){
-					drawTriangle(viewPort, triangle.material.diffuse,
-							Vector{f0.position.x, f0.position.y},
-							Vector{f1.position.x, f1.position.y},
-							Vector{f2.position.x, f2.position.y});
+					//drawTriangle(viewPort, triangle.material.diffuse,
+					//		Vector{f0.position.x, f0.position.y},
+					//		Vector{f1.position.x, f1.position.y},
+					//		Vector{f2.position.x, f2.position.y});
 				}
 				else{
-					int dy01 = f1.position.y-f0.position.y;
-					int dy02 = f2.position.y-f0.position.y;
-					int dy12 = f2.position.y-f1.position.y;
-
-					forward_list<pair<Fragment*, int>> lines;
-
-					Fragment* l01 = lerp<Fragment>(0, f0, dy01, f1, dy01+2);
-					Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
-					Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
-
-					for(int i = 0; i <= dy02; i++){
-						Fragment f1 = l02[i];
-						Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
-						if(f1.position.x > f2.position.x)
-							swap(f1, f2);
-
-						int start, end;
-						if(lines.empty()){
-							start = f1.position.x;
-							end = f2.position.x+2;
-						}
-						else{
-							int fp1 = lines.front().first->position.x;
-							int fp2 = fp1+lines.front().second;
-
-							start = min((int)f1.position.x, fp1);
-							end = max((int)f2.position.x+2, fp2+1);
-						}
-
-						lines.push_front(make_pair(
-								lerp<Fragment>(fragments[(int)l02[0].position.y+i]+(int)f1.position.x,
-										f1.position.x, f1,
-										f2.position.x, f2,
-										end-start,
-										start-(int)f1.position.x),
-								(int)f2.position.x-(int)f1.position.x));
-					}
-					Fragment f1 = l02[dy02+1];
-					Fragment f2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
-					if(f1.position.x > f2.position.x)
-						swap(f1, f2);
-
-					lerp<Fragment>(fragments[(int)lines.front().first->position.y+1]+(int)f1.position.x,
-							f1.position.x, f1,
-							f2.position.x, f2,
-							lines.front().second+1,
-							(int)lines.front().first->position.x-(int)f1.position.x);
+					auto lines = createFragment(vertices, triangle);
 
 					for(pair<Fragment*, int> pair: lines){
-						int x = pair.first->position.x, y = pair.first->position.y;
+						int x = pair.first->x, y = pair.first->y;
 						for(int i = 0; i <= pair.second; i++, x++){
 							Fragment f = pair.first[i];
 
 							if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
 								cout << "out " << x << " " << y << endl;
 								printf("%d, %d\t%d",
-										(int)pair.first->position.x, (int)pair.first->position.y,
+										(int)pair.first->x, (int)pair.first->y,
 										pair.second);
 								cout << endl;
 								throw "pixel drawn out of bounds";
 							}
 
-							if(f.position.z >= depthInverse[x][y]){
-								depthInverse[x][y] = f.position.z;
+							if(f.z >= depthInverse[x][y]){
+								depthInverse[x][y] = f.z;
 
 								if(settings->textures){
 									if(f.material.ambientTexture != nullptr)

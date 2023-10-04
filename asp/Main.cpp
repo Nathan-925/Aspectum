@@ -24,7 +24,7 @@ using namespace priori;
 using namespace asp;
 
 void debugShader(Fragment& fragment){
-	Vector texel = fragment.texel/fragment.position.z;
+	Vector texel = fragment.texel/fragment.z;
 	fragment.color = Color(255*texel.x, 0, 255*texel.y);
 }
 
@@ -70,13 +70,13 @@ int main(){
 	model.triangles.back().texels[0] = Vector{0, 0};
 	model.triangles.back().texels[1] = Vector{0, 1};
 	model.triangles.back().texels[2] = Vector{1, 0};
-	model.triangles.back().material.diffuse = 0xFFFFFF;
+	model.triangles.back().material.diffuse = 0xFF0000;
 	model.triangles.back().material.alpha = 0.6;
-	//model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
+	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
 	//model.triangles.back().material.diffuseTexture = &loader.textures.at("skeeter");
-	model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
+	//model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
 			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
-    //
+
 	//model.triangles.emplace_back();
 	//model.triangles.back().vertices[0] = 3;
 	//model.triangles.back().vertices[1] = 2;
@@ -87,7 +87,7 @@ int main(){
 	//model.triangles.back().texels[0] = Vector{1, 1};
 	//model.triangles.back().texels[1] = Vector{1, 0};
 	//model.triangles.back().texels[2] = Vector{0, 1};
-	//model.triangles.back().material.diffuse = 0xFFFFFF;
+	//model.triangles.back().material.diffuse = 0xFF;
 	//model.triangles.back().material.alpha = 0.6;
     //
 	//model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
@@ -97,7 +97,7 @@ int main(){
 	Instance i(&model);
 	//i.transform *= rotateX(-M_PI/2);
 	i.transform *= scale(2, 2, 1);
-	i.transform *= translate(2, 0, 3);
+	i.transform *= translate(1.2, 0, 3);
 	//i.transform *= rotateZ(M_PI/6);
 	scene.objects.push_back(&i);
 
