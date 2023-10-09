@@ -97,7 +97,7 @@ int main(){
 	Instance i(&model);
 	//i.transform *= rotateX(-M_PI/2);
 	i.transform *= scale(2, 2, 1);
-	i.transform *= translate(1.2, 0, 3);
+	i.transform *= translate(2, 0, 3);
 	//i.transform *= rotateZ(M_PI/6);
 	scene.objects.push_back(&i);
 

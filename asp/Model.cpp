@@ -68,36 +68,28 @@ namespace asp{
 	}
 
 	Fragment Fragment::operator+(Fragment other) const{
-		other.x += x;
-		other.y += y;
-		other.z += z;
+		other.position += position;
 		other.texel += texel;
 		other.normal += normal;
 		return other;
 	}
 
 	Fragment Fragment::operator-(Fragment other) const{
-		other.x = x-other.x;
-		other.y = y-other.y;
-		other.z = z-other.z;
+		other.position = position-other.position;
 		other.texel = texel-other.texel;
 		other.normal = normal-other.normal;
 		return other;
 	}
 
 	Fragment Fragment::operator+=(const Fragment &other){
-		x += other.x;
-		y += other.y;
-		z += other.z;
+		position += other.position;
 		texel += other.texel;
 		normal += other.normal;
 		return *this;
 	}
 
 	Fragment Fragment::operator-=(const Fragment &other){
-		x -= other.x;
-		y -= other.y;
-		z -= other.z;
+		position -= other.position;
 		texel -= other.texel;
 		normal -= other.normal;
 		return *this;
@@ -105,9 +97,7 @@ namespace asp{
 
 	Fragment Fragment::operator*(const double &d) const{
 		Fragment out(*this);
-		out.x *= d;
-		out.y *= d;
-		out.z *= d;
+		out.position *= d;
 		out.texel *= d;
 		out.normal *= d;
 		return out;
@@ -115,27 +105,21 @@ namespace asp{
 
 	Fragment Fragment::operator/(const double &d) const{
 		Fragment out(*this);
-		out.x /= d;
-		out.y /= d;
-		out.z /= d;
+		out.position /= d;
 		out.texel /= d;
 		out.normal /= d;
 		return out;
 	}
 
 	Fragment Fragment::operator*=(const double &d){
-		x *= d;
-		y *= d;
-		z *= d;
+		position *= d;
 		texel *= d;
 		normal *= d;
 		return *this;
 	}
 
 	Fragment Fragment::operator/=(const double &d){
-		x /= d;
-		y /= d;
-		z /= d;
+		position /= d;
 		texel /= d;
 		normal /= d;
 		return *this;
@@ -205,12 +189,12 @@ namespace asp{
 		//	c |=  0xFF0000;
 		//return Color(c)*0.8;
 
-		Vector texel = fragment[y][x].texel/fragment[y][x].z;
+		Vector texel = fragment[y][x].texel/fragment[y][x].position.z;
 		double baseMap = 0;
 
 		if(settings->mipmapping){
-			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].z-texel;
-			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].z-texel;
+			Vector dx = fragment[y][x+1].texel/fragment[y][x+1].position.z-texel;
+			Vector dy = fragment[y+1][x].texel/fragment[y+1][x].position.z-texel;
 
 			double nx = dx*dx, ny = dy*dy;
 			double p = sqrt(max(nx, ny));

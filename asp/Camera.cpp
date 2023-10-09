@@ -61,7 +61,7 @@ namespace asp{
 		double z = 1/vertex.position.z;
 
 		return Fragment{this,
-						x, y, z,
+						Vector3D{(double)x, (double)y, z},
 						texel/vertex.position.z,
 						normal.normalize(),
 						0,
@@ -81,21 +81,21 @@ namespace asp{
 		Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.texels[0], triangle.material),
 				 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.texels[1], triangle.material),
 				 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.texels[2], triangle.material);
-		printf("%d %d %.2f\n", f0.x, f0.y, f0.z);
-		printf("%d %d %.2f\n", f1.x, f1.y, f1.z);
-		printf("%d %d %.2f\n", f2.x, f2.y, f2.z);
+		printf("%.2f %.2f %.2f\n", f0.position.x, f0.position.y, f0.position.z);
+		printf("%.2f %.2f %.2f\n", f1.position.x, f1.position.y, f1.position.z);
+		printf("%.2f %.2f %.2f\n", f2.position.x, f2.position.y, f2.position.z);
 		cout << endl;
 
-		if(f0.y > f1.y)
+		if(f0.position.y > f1.position.y)
 			swap(f0, f1);
-		if(f0.y > f2.y)
+		if(f0.position.y > f2.position.y)
 			swap(f0, f2);
-		if(f1.y > f2.y)
+		if(f1.position.y > f2.position.y)
 			swap(f1, f2);
 
-		int dy01 = f1.y-f0.y;
-		int dy02 = f2.y-f0.y;
-		int dy12 = f2.y-f1.y;
+		int dy01 = f1.position.y-f0.position.y;
+		int dy02 = f2.position.y-f0.position.y;
+		int dy12 = f2.position.y-f1.position.y;
 
 		forward_list<pair<Fragment*, int>> lines;
 
@@ -106,40 +106,40 @@ namespace asp{
 		for(int i = 0; i <= dy02; i++){
 			Fragment f1 = l02[i];
 			Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
-			if(f1.x > f2.x)
+			if(f1.position.x > f2.position.x)
 				swap(f1, f2);
 
 			int start, end;
 			if(lines.empty()){
-				start = f1.x;
-				end = f2.x+2;
+				start = f1.position.x;
+				end = f2.position.x+2;
 			}
 			else{
-				int fp1 = lines.front().first->x;
+				int fp1 = lines.front().first->position.x;
 				int fp2 = fp1+lines.front().second;
 
-				start = min((int)f1.x, fp1);
-				end = max((int)f2.x+2, fp2+1);
+				start = min((int)f1.position.x, fp1);
+				end = max((int)f2.position.x+2, fp2+1);
 			}
 
 			lines.push_front(make_pair(
-					lerp<Fragment>(fragments[(int)l02[0].y+i]+(int)f1.x,
-							f1.x, f1,
-							f2.x, f2,
+					lerp<Fragment>(fragments[(int)l02[0].position.y+i]+(int)f1.position.x,
+							f1.position.x, f1,
+							f2.position.x, f2,
 							end-start,
-							start-(int)f1.x),
-					(int)f2.x-(int)f1.x));
+							start-(int)f1.position.x),
+					(int)f2.position.x-(int)f1.position.x));
 		}
 		Fragment fn1 = l02[dy02+1];
 		Fragment fn2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
-		if(fn1.x > fn2.x)
+		if(fn1.position.x > fn2.position.x)
 			swap(fn1, fn2);
 
-		lerp<Fragment>(fragments[(int)lines.front().first->y+1]+(int)fn1.x,
-				fn1.x, fn1,
-				fn2.x, fn2,
+		lerp<Fragment>(fragments[(int)lines.front().first->position.y+1]+(int)fn1.position.x,
+				fn1.position.x, fn1,
+				fn2.position.x, fn2,
 				lines.front().second+1,
-				(int)lines.front().first->x-(int)fn1.x);
+				(int)lines.front().first->position.x-(int)fn1.position.x);
 
 		return lines;
 	}
@@ -242,21 +242,21 @@ namespace asp{
 					auto lines = createFragment(vertices, triangle);
 
 					for(pair<Fragment*, int> pair: lines){
-						int x = pair.first->x, y = pair.first->y;
+						int x = pair.first->position.x, y = pair.first->position.y;
 						for(int i = 0; i <= pair.second; i++, x++){
 							Fragment f = pair.first[i];
 
 							if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
 								cout << "out " << x << " " << y << endl;
 								printf("%d, %d\t%d",
-										(int)pair.first->x, (int)pair.first->y,
+										(int)pair.first->position.x, (int)pair.first->position.y,
 										pair.second);
 								cout << endl;
 								throw "pixel drawn out of bounds";
 							}
 
-							if(f.z >= depthInverse[x][y]){
-								depthInverse[x][y] = f.z;
+							if(f.position.z >= depthInverse[x][y]){
+								depthInverse[x][y] = f.position.z;
 
 								if(settings->textures){
 									if(f.material.ambientTexture != nullptr)
