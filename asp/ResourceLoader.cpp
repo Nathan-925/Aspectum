@@ -56,7 +56,7 @@ namespace asp{
 
 						if(s1 < s.length()-1 && s2 > s1+1){
 							int tIndex = stoi(s.substr(s1+1, s2));
-							model.triangles.back().texels[i] = texels[tIndex > 0 ? tIndex-1 : texels.size()+tIndex];
+							model.vertices[model.triangles.back().vertices[i]].texel = texels[tIndex > 0 ? tIndex-1 : texels.size()+tIndex];
 						}
 
 						normalIndexes[i] = s2 < s.length()-1 ? stoi(s.substr(s2+1)) : 0;

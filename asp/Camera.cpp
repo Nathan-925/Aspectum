@@ -182,6 +182,7 @@ namespace asp{
 					shader(v);
 
 			for(Vertex &v: vertices){
+				v.texel /= v.position.z;
 				if(settings->projection == settings->PERSPECTIVE){
 					v.position = Vector3D{(2*v.position.x*focalLength)/(width*v.position.z),
 										  (2*v.position.y*focalLength)/(width*v.position.z),

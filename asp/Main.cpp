@@ -45,6 +45,7 @@ int main(){
 	loader.addTexture("noe", readbmp("noe.bmp"));
 	loader.addTexture("skeeter", readbmp("skeeter.bmp"));
 	loader.addTexture("wood", readbmp("wood.bmp"));
+	loader.addTexture("t2", readbmp("t2.bmp"));
 
 
 	loader.readobj("mario/untitled.obj");
@@ -94,9 +95,10 @@ int main(){
 
 	Instance i(&model);
 	i.transform *= translate(-0.5, -0.5, 0);
-	i.transform *= rotateX(-M_PI/3);
+	//i.transform *= rotateZ(-M_PI/3);
+	i.transform *= rotateX(-M_PI/4);
 	i.transform *= scale(2, 2, 1);
-	i.transform *= translate(0, -1.5, 2);
+	i.transform *= translate(1, 0, 2);
 	//i.transform *= rotateZ(M_PI/6);
 	scene.objects.push_back(&i);
 
