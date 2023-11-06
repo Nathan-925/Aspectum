@@ -24,7 +24,7 @@ using namespace priori;
 using namespace asp;
 
 void debugShader(Fragment& fragment){
-	Vector texel = fragment.texel/fragment.z;
+	Vector texel = fragment.texel/fragment.position.z;
 	fragment.color = Color(255*texel.x, 0, 255*texel.y);
 }
 
@@ -36,7 +36,7 @@ int main(){
 	settings.backFaceCulling = false;
 	settings.textures = true;
 	settings.textureSettings.mipmapping = false;
-	settings.textureSettings.filtering = settings.textureSettings.BILINEAR;
+	settings.textureSettings.filtering = settings.textureSettings.NONE;
 	settings.shading = true;
 	settings.specular = true;
 
@@ -53,12 +53,16 @@ int main(){
 	Model model;
 	model.vertices.emplace_back();
 	model.vertices.back().position = Vector3D{0, 0, 0, true};
+	model.vertices.back().texel = Vector{0, 0};
 	model.vertices.emplace_back();
 	model.vertices.back().position = Vector3D{0, 1, 0, true};
+	model.vertices.back().texel = Vector{0, 1};
 	model.vertices.emplace_back();
 	model.vertices.back().position = Vector3D{1, 0, 0, true};
+	model.vertices.back().texel = Vector{1, 0};
 	model.vertices.emplace_back();
 	model.vertices.back().position = Vector3D{1, 1, 0, true};
+	model.vertices.back().texel = Vector{1, 1};
 
 	model.triangles.emplace_back();
 	model.triangles.back().vertices[0] = 0;
@@ -67,9 +71,6 @@ int main(){
 	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
 	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
 	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	model.triangles.back().texels[0] = Vector{0, 0};
-	model.triangles.back().texels[1] = Vector{0, 1};
-	model.triangles.back().texels[2] = Vector{1, 0};
 	model.triangles.back().material.diffuse = 0xFF0000;
 	model.triangles.back().material.alpha = 0.6;
 	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
@@ -77,27 +78,25 @@ int main(){
 	//model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
 			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
 
-	//model.triangles.emplace_back();
-	//model.triangles.back().vertices[0] = 3;
-	//model.triangles.back().vertices[1] = 2;
-	//model.triangles.back().vertices[2] = 1;
-	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	//model.triangles.back().texels[0] = Vector{1, 1};
-	//model.triangles.back().texels[1] = Vector{1, 0};
-	//model.triangles.back().texels[2] = Vector{0, 1};
-	//model.triangles.back().material.diffuse = 0xFF;
-	//model.triangles.back().material.alpha = 0.6;
-    //
-	//model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
+	model.triangles.emplace_back();
+	model.triangles.back().vertices[0] = 3;
+	model.triangles.back().vertices[1] = 2;
+	model.triangles.back().vertices[2] = 1;
+	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	model.triangles.back().material.diffuse = 0xFF;
+	model.triangles.back().material.alpha = 0.6;
+
+	model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
 
 	Scene scene;
 
 	Instance i(&model);
-	//i.transform *= rotateX(-M_PI/2);
+	i.transform *= translate(-0.5, -0.5, 0);
+	i.transform *= rotateX(-M_PI/3);
 	i.transform *= scale(2, 2, 1);
-	i.transform *= translate(2, 0, 3);
+	i.transform *= translate(0, -1.5, 2);
 	//i.transform *= rotateZ(M_PI/6);
 	scene.objects.push_back(&i);
 

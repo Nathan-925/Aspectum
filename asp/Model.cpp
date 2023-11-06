@@ -17,43 +17,51 @@ namespace asp{
 
 	Vertex Vertex::operator+(Vertex other) const{
 		other.position += position;
+		other.texel += texel;
 		return other;
 	}
 
 	Vertex Vertex::operator-(Vertex other) const{
 		other.position = position-other.position;
+		other.texel = texel-other.texel;
 		return other;
 	}
 
 	Vertex Vertex::operator+=(const Vertex &other){
 		position += other.position;
+		texel += other.texel;
 		return *this;
 	}
 
 	Vertex Vertex::operator-=(const Vertex &other){
 		position -= other.position;
+		texel -= other.texel;
 		return *this;
 	}
 
 	Vertex Vertex::operator*(const double &d) const{
 		Vertex out(*this);
 		out.position *= d;
+		out.texel *= d;
 		return out;
 	}
 
 	Vertex Vertex::operator/(const double &d) const{
 		Vertex out(*this);
 		out.position /= d;
+		out.texel /= d;
 		return out;
 	}
 
 	Vertex Vertex::operator*=(const double &d){
 		position *= d;
+		texel *= d;
 		return *this;
 	}
 
 	Vertex Vertex::operator/=(const double &d){
 		position /= d;
+		texel /= d;
 		return *this;
 	}
 

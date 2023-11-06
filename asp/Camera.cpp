@@ -55,14 +55,14 @@ namespace asp{
 		delete[] fragments;
 	}
 
-	Fragment Camera::project(const Vertex &vertex, Vector3D normal, priori::Vector texel, const Material &material){
+	Fragment Camera::project(const Vertex &vertex, Vector3D normal, const Material &material){
 		int x = (viewPort.width-1)*(vertex.position.x+1)/2;
 		int y = (viewPort.height-1)*(vertex.position.y+1)/2;
 		double z = 1/vertex.position.z;
 
 		return Fragment{this,
 						Vector3D{(double)x, (double)y, z},
-						texel/vertex.position.z,
+						vertex.texel,
 						normal.normalize(),
 						0,
 						material};
@@ -78,9 +78,9 @@ namespace asp{
 	}
 
 	forward_list<pair<Fragment*, int>> Camera::createFragment(vector<Vertex> vertices, Triangle triangle){
-		Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.texels[0], triangle.material),
-				 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.texels[1], triangle.material),
-				 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.texels[2], triangle.material);
+		Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.material),
+				 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.material),
+				 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.material);
 		printf("%.2f %.2f %.2f\n", f0.position.x, f0.position.y, f0.position.z);
 		printf("%.2f %.2f %.2f\n", f1.position.x, f1.position.y, f1.position.z);
 		printf("%.2f %.2f %.2f\n", f2.position.x, f2.position.y, f2.position.z);
