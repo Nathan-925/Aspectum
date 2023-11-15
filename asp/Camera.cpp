@@ -22,7 +22,7 @@ namespace asp{
 
 	Camera::Camera(int width, int height) :
 			depthInverse(new double*[width]),
-			width(1000), height(1000),
+			width(width), height(height),
 			drawDistance(1000),
 			viewPort(width, height),
 			settings(),
@@ -56,8 +56,8 @@ namespace asp{
 	}
 
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, const Material &material){
-		int x = (viewPort.width-1)*(vertex.position.x+1)/2;
-		int y = (viewPort.height-1)*(vertex.position.y+1)/2;
+		int x = (viewPort.width)*(vertex.position.x+1)/2;
+		int y = (viewPort.height)*(vertex.position.y+1)/2;
 		double z = vertex.position.z;
 
 		return Fragment{this,
@@ -72,10 +72,6 @@ namespace asp{
 		Fragment f0 = project(vertices[triangle.vertices[0]], triangle.normals[0], triangle.material),
 				 f1 = project(vertices[triangle.vertices[1]], triangle.normals[1], triangle.material),
 				 f2 = project(vertices[triangle.vertices[2]], triangle.normals[2], triangle.material);
-		printf("%.2f %.2f %.2f\n", f0.position.x, f0.position.y, f0.position.z);
-		printf("%.2f %.2f %.2f\n", f1.position.x, f1.position.y, f1.position.z);
-		printf("%.2f %.2f %.2f\n", f2.position.x, f2.position.y, f2.position.z);
-		cout << endl;
 
 		if(f0.position.y > f1.position.y)
 			swap(f0, f1);
@@ -94,7 +90,7 @@ namespace asp{
 		Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
 		Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
 
-		for(int i = 0; i <= dy02; i++){
+		for(int i = 0; i < dy02; i++){
 			Fragment f1 = l02[i];
 			Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
 			if(f1.position.x > f2.position.x)
@@ -110,7 +106,7 @@ namespace asp{
 				int fp2 = fp1+lines.front().second;
 
 				start = min((int)f1.position.x, fp1);
-				end = max((int)f2.position.x+2, fp2+1);
+				end = max((int)f2.position.x+1, fp2);
 			}
 
 			lines.push_front(make_pair(
@@ -194,13 +190,6 @@ namespace asp{
 									 Plane{Vector3D{0, 0, 1, false}, 0}};
 			for(Plane plane: cullingPlanes)
 				cull(vertices, triangles, plane);
-			for(Triangle t: triangles){
-				for(int i = 0; i < 3; i++){
-					Vertex v = vertices[t.vertices[i]];
-					printf("%.2f %.2f %.2f\n", v.position.x, v.position.y, v.position.z);
-				}
-				cout << endl;
-			}
 
 			//culling
 			if(settings->backFaceCulling)
@@ -238,7 +227,7 @@ namespace asp{
 
 					for(pair<Fragment*, int> pair: lines){
 						int x = pair.first->position.x, y = pair.first->position.y;
-						for(int i = 0; i <= pair.second; i++, x++){
+						for(int i = 0; i < pair.second; i++, x++){
 							Fragment f = pair.first[i];
 
 							if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){
