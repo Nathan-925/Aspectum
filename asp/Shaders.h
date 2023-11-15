@@ -21,11 +21,7 @@ namespace asp{
 	typedef void (*GeometryShader)(std::vector<Vertex>&, std::forward_list<Triangle>&);
 	typedef void (*FragmentShader)(Fragment&);
 
-	struct CullingPlane{
-		priori::Plane plane;
-
-		void cull(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles);
-	};
+	void cull(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles, priori::Plane);
 
 	void cullBackFaces(std::vector<Vertex> &vertices, std::forward_list<Triangle> &triangles);
 

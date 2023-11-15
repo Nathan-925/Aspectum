@@ -37,6 +37,7 @@ int main(){
 	settings.textures = true;
 	settings.textureSettings.mipmapping = false;
 	settings.textureSettings.filtering = settings.textureSettings.NONE;
+	settings.textureSettings.wrap = true;
 	settings.shading = true;
 	settings.specular = true;
 
@@ -50,57 +51,58 @@ int main(){
 
 	loader.readobj("mario/untitled.obj");
 	loader.readobj("cube/cube.obj");
-	//Model* model = &loader.models["mario/untitled.obj"];
-	Model model;
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{0, 0, 0, true};
-	model.vertices.back().texel = Vector{0, 0};
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{0, 1, 0, true};
-	model.vertices.back().texel = Vector{0, 1};
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{1, 0, 0, true};
-	model.vertices.back().texel = Vector{1, 0};
-	model.vertices.emplace_back();
-	model.vertices.back().position = Vector3D{1, 1, 0, true};
-	model.vertices.back().texel = Vector{1, 1};
-
-	model.triangles.emplace_back();
-	model.triangles.back().vertices[0] = 0;
-	model.triangles.back().vertices[1] = 1;
-	model.triangles.back().vertices[2] = 2;
-	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	model.triangles.back().material.diffuse = 0xFF0000;
-	model.triangles.back().material.alpha = 0.6;
-	model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
-	//model.triangles.back().material.diffuseTexture = &loader.textures.at("skeeter");
-	//model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
-			//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
-
-	model.triangles.emplace_back();
-	model.triangles.back().vertices[0] = 3;
-	model.triangles.back().vertices[1] = 2;
-	model.triangles.back().vertices[2] = 1;
-	model.triangles.back().normals[0] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[1] = Vector3D{0, 0, -1};
-	model.triangles.back().normals[2] = Vector3D{0, 0, -1};
-	model.triangles.back().material.diffuse = 0xFF;
-	model.triangles.back().material.alpha = 0.6;
-
-	model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
+	Model* model = &loader.models["mario/untitled.obj"];
+	//Model model;
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{0, 0, 0, true};
+	//model.vertices.back().texel = Vector{0, 0};
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{0, 1, 0, true};
+	//model.vertices.back().texel = Vector{0, 1};
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{1, 0, 0, true};
+	//model.vertices.back().texel = Vector{1, 0};
+	//model.vertices.emplace_back();
+	//model.vertices.back().position = Vector3D{1, 1, 0, true};
+	//model.vertices.back().texel = Vector{1, 1};
+    //
+	//model.triangles.emplace_back();
+	//model.triangles.back().vertices[0] = 0;
+	//model.triangles.back().vertices[1] = 1;
+	//model.triangles.back().vertices[2] = 2;
+	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	//model.triangles.back().material.diffuse = 0xFF0000;
+	//model.triangles.back().material.alpha = 0.6;
+	//model.triangles.back().material.diffuseTexture = &loader.textures.at("t.bmp");
+	////model.triangles.back().material.diffuseTexture = &loader.textures.at("skeeter");
+	////model.triangles.back().material.diffuseTexture = &loader.textures.at("wood");
+	//		//new Texture(readbmp("skeeter.bmp"), &settings.textureSettings);
+    //
+	//model.triangles.emplace_back();
+	//model.triangles.back().vertices[0] = 3;
+	//model.triangles.back().vertices[1] = 2;
+	//model.triangles.back().vertices[2] = 1;
+	//model.triangles.back().normals[0] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[1] = Vector3D{0, 0, -1};
+	//model.triangles.back().normals[2] = Vector3D{0, 0, -1};
+	//model.triangles.back().material.diffuse = 0xFF;
+	//model.triangles.back().material.alpha = 0.6;
+    //
+	//model.triangles.back().material.diffuseTexture = model.triangles.front().material.diffuseTexture;
 
 	Scene scene;
 
-	Instance i(&model);
-	i.transform *= translate(-0.5, -0.5, 0);
-	//i.transform *= rotateZ(-M_PI/3);
-	i.transform *= rotateX(-M_PI/4);
-	i.transform *= scale(2, 2, 1);
-	i.transform *= translate(1, 0, 2);
-	//i.transform *= rotateZ(M_PI/6);
-	scene.objects.push_back(&i);
+	//Instance i(&model);
+	//i.transform *= translate(-0.5, -0.5, 0);
+	////i.transform *= rotateZ(M_PI/3);
+	//i.transform *= rotateX(-M_PI/6);
+	//i.transform *= rotateY(-M_PI/6);
+	//i.transform *= scale(2, 2, 1);
+	//i.transform *= translate(2, 0, 2);
+	////i.transform *= rotateZ(M_PI/6);
+	//scene.objects.push_back(&i);
 
 	//for(int w = 0; w < 30; w++)
 	//	for(int i = 0; i < 60; i++){
@@ -119,10 +121,10 @@ int main(){
 	//	scene.objects.push_back(inst);
 	//}
 
-	//Instance i(model);
-	//i.transform *= rotateY(M_PI*5/4);
-	//i.transform *= translate(0, -75, 100);
-	//scene.objects.push_back(&i);
+	Instance i(model);
+	i.transform *= rotateY(M_PI*5/4);
+	i.transform *= translate(0, -75, 200);
+	scene.objects.push_back(&i);
 
 	Light aLight;
 	aLight.color = 0xFFFFFF;
@@ -154,7 +156,7 @@ int main(){
 	cout << "end render" << endl;
 
 	//settings.wireframe = true;
-	//for(Triangle &t: model.triangles){
+	//for(Triangle &t: model->triangles){
 	//	t.material.diffuse = 0;
 	//}
 	//camera.render(scene);

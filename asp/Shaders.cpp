@@ -14,7 +14,7 @@ using namespace priori;
 
 namespace asp{
 
-	void CullingPlane::cull(vector<Vertex> &vertices, forward_list<Triangle> &triangles){
+	void cull(vector<Vertex> &vertices, forward_list<Triangle> &triangles, Plane plane){
 		auto prev = triangles.before_begin();
 		for(auto it = triangles.begin(); it != triangles.end(); prev = it++){
 			Triangle t = *it;

@@ -35,7 +35,6 @@ namespace asp{
 		double** depthInverse;
 
 		Fragment project(const Vertex &vertex, priori::Vector3D normal, const Material &material);
-		void cull(std::vector<Vertex> vertices, std::forward_list<Triangle> triangles);
 		std::forward_list<std::pair<Fragment*, int>> createFragment(std::vector<Vertex> vertices, Triangle triangle);
 
 	public:

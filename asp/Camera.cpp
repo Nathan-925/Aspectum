@@ -58,7 +58,7 @@ namespace asp{
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, const Material &material){
 		int x = (viewPort.width-1)*(vertex.position.x+1)/2;
 		int y = (viewPort.height-1)*(vertex.position.y+1)/2;
-		double z = 1/vertex.position.z;
+		double z = vertex.position.z;
 
 		return Fragment{this,
 						Vector3D{(double)x, (double)y, z},
@@ -66,65 +66,6 @@ namespace asp{
 						normal.normalize(),
 						0,
 						material};
-	}
-
-	void Camera::cull(vector<Vertex> vertices, forward_list<Triangle> triangles){
-		auto prev = triangles.before_begin();
-		for(auto it = triangles.begin(); it != triangles.end(); prev = it++){
-			Triangle t = *it;
-			int culled[3];
-			int numCulled = 0;
-			for(int i = 0; i < 3; i++){
-				Vector3D pos = vertices[t.vertices[i]].position;
-				if(abs(pos.x) > 1 || abs(pos.y) > 1 || pos.z < 0)
-					culled[numCulled++] = i;
-				else
-					culled[2-i+numCulled] = i;
-			}
-
-			if(numCulled == 3){
-				triangles.erase_after(prev);
-				it = prev;
-			}
-			else if(numCulled == 2){
-				it->vertices[culled[0]] = vertices.size();
-				double d1 = plane.intersectionPercent(vertices[t.vertices[culled[0]]].position, vertices[t.vertices[culled[2]]].position);
-				vertices.push_back(lerp<Vertex>(d1, vertices[t.vertices[culled[0]]], vertices[t.vertices[culled[2]]]));
-				it->normals[culled[0]] = lerp<Vector3D>(d1, t.normals[culled[0]], t.normals[culled[2]]);
-				//it->texels[culled[0]] = lerp<Vector>(d1, t.texels[culled[0]], t.texels[culled[2]]);
-
-				it->vertices[culled[1]] = vertices.size();
-				double d2 = plane.intersectionPercent(vertices[t.vertices[culled[1]]].position, vertices[t.vertices[culled[2]]].position);
-				vertices.push_back(lerp<Vertex>(d2, vertices[t.vertices[culled[1]]], vertices[t.vertices[culled[2]]]));
-				it->normals[culled[1]] = lerp<Vector3D>(d2, t.normals[culled[1]], t.normals[culled[2]]);
-				//it->texels[culled[1]] = lerp<Vector>(d2, t.texels[culled[1]], t.texels[culled[2]]);
-			}
-			else if(numCulled == 1){
-				Triangle clipping(t);
-
-				clipping.vertices[0] = vertices.size();
-				double d1 = plane.intersectionPercent(vertices[t.vertices[culled[0]]].position, vertices[t.vertices[culled[1]]].position);
-				vertices.push_back(lerp<Vertex>(d1, vertices[t.vertices[culled[0]]], vertices[t.vertices[culled[1]]]));
-				clipping.normals[0] = lerp<Vector3D>(d1, t.normals[culled[0]], t.normals[culled[1]]);
-				//clipping.texels[0] = lerp<Vector>(d1, t.texels[culled[0]], t.texels[culled[1]]);
-
-				clipping.vertices[1] = vertices.size();
-				double d2 = plane.intersectionPercent(vertices[t.vertices[culled[0]]].position, vertices[t.vertices[culled[2]]].position);
-				vertices.push_back(lerp<Vertex>(d2, vertices[t.vertices[culled[0]]], vertices[t.vertices[culled[2]]]));
-				clipping.normals[1] = lerp<Vector3D>(d2, t.normals[culled[0]], t.normals[culled[2]]);
-				//clipping.texels[1] = lerp<Vector>(d2, t.texels[culled[0]], t.texels[culled[2]]);
-
-				clipping.vertices[2] = t.vertices[culled[1]];
-				clipping.normals[2] = t.normals[culled[1]];
-				//clipping.texels[2] = t.texels[culled[1]];
-
-				it->vertices[culled[0]] = clipping.vertices[1];
-				it->normals[culled[0]] = clipping.normals[1];
-				//it->texels[culled[0]] = clipping.texels[1];
-
-				triangles.push_front(clipping);
-			}
-		}
 	}
 
 	forward_list<pair<Fragment*, int>> Camera::createFragment(vector<Vertex> vertices, Triangle triangle){
@@ -232,11 +173,11 @@ namespace asp{
 					shader(v);
 
 			for(Vertex &v: vertices){
-				v.texel /= v.position.z;
 				if(settings->projection == settings->PERSPECTIVE){
+					v.texel /= v.position.z;
 					v.position = Vector3D{(2*v.position.x*focalLength)/(width*v.position.z),
-										  (2*v.position.y*focalLength)/(width*v.position.z),
-										  v.position.z, true};
+										  (2*v.position.y*focalLength)/(height*v.position.z),
+										   1/v.position.z, true};
 				}
 				else if(settings->projection == settings->ORTHOGRAPHIC){
 					v.position = Vector3D{v.position.x,
@@ -246,13 +187,13 @@ namespace asp{
 			}
 
 
-			CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{1, 0, 0, false}, 1},
-									 	    CullingPlane{Vector3D{-1, 0, 0, false}, 1},
-											CullingPlane{Vector3D{0, 1, 0, false}, 1},
-											CullingPlane{Vector3D{0, -1, 0, false}, 1},
-											CullingPlane{Vector3D{0, 0, 1, false}, 0}};
-			for(CullingPlane plane: cullingPlanes)
-				plane.cull(vertices, triangles);
+			Plane cullingPlanes[] = {Plane{Vector3D{1, 0, 0, false}, 1},
+									 Plane{Vector3D{-1, 0, 0, false}, 1},
+									 Plane{Vector3D{0, 1, 0, false}, 1},
+									 Plane{Vector3D{0, -1, 0, false}, 1},
+									 Plane{Vector3D{0, 0, 1, false}, 0}};
+			for(Plane plane: cullingPlanes)
+				cull(vertices, triangles, plane);
 			for(Triangle t: triangles){
 				for(int i = 0; i < 3; i++){
 					Vertex v = vertices[t.vertices[i]];
@@ -284,10 +225,13 @@ namespace asp{
 			for(Triangle &triangle: triangles){
 
 				if(settings->wireframe){
-					//drawTriangle(viewPort, triangle.material.diffuse,
-					//		Vector{f0.position.x, f0.position.y},
-					//		Vector{f1.position.x, f1.position.y},
-					//		Vector{f2.position.x, f2.position.y});
+					Vector v[3];
+					for(int i = 0; i < 3; i++){
+						Vector3D p = project(vertices[triangle.vertices[i]], triangle.normals[i], triangle.material).position;
+						v[i] = Vector{p.x, p.y};
+					}
+
+					drawTriangle(viewPort, triangle.material.diffuse, v[0], v[1], v[2]);
 				}
 				else{
 					auto lines = createFragment(vertices, triangle);
