@@ -117,15 +117,15 @@ namespace asp{
 							start-(int)f1.position.x),
 					(int)f2.position.x-(int)f1.position.x));
 		}
-		Fragment fn1 = l02[dy02+1];
-		Fragment fn2 = dy12 == 0 ? l01[dy01+1] : l12[dy12+1];
+		Fragment fn1 = l02[dy02];
+		Fragment fn2 = dy12 == 0 ? l01[dy01] : l12[dy12];
 		if(fn1.position.x > fn2.position.x)
 			swap(fn1, fn2);
 
 		lerp<Fragment>(fragments[(int)lines.front().first->position.y+1]+(int)fn1.position.x,
 				fn1.position.x, fn1,
 				fn2.position.x, fn2,
-				lines.front().second+1,
+				lines.front().second,
 				(int)lines.front().first->position.x-(int)fn1.position.x);
 
 		return lines;
@@ -218,6 +218,7 @@ namespace asp{
 					for(int i = 0; i < 3; i++){
 						Vector3D p = project(vertices[triangle.vertices[i]], triangle.normals[i], triangle.material).position;
 						v[i] = Vector{p.x, p.y};
+						cout << p.x << " " << p.y << endl;
 					}
 
 					drawTriangle(viewPort, triangle.material.diffuse, v[0], v[1], v[2]);
