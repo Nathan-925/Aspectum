@@ -149,7 +149,7 @@ int main(){
 	//pLight.point = Vector3D{-50, 50, 0, true};
 	//scene.lights.push_back(&pLight);
 
-	Camera camera(10, 10);
+	Camera camera(100, 100);
 	camera.settings = &settings;
 	//camera.fragmentShaders.push_back(colorNormals);
 
