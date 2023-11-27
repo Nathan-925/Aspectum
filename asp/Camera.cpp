@@ -56,8 +56,8 @@ namespace asp{
 	}
 
 	Fragment Camera::project(const Vertex &vertex, Vector3D normal, const Material &material){
-		int x = (viewPort.width)*(vertex.position.x+1)/2;
-		int y = (viewPort.height)*(vertex.position.y+1)/2;
+		int x = (viewPort.width-1)*(vertex.position.x+1)/2;
+		int y = (viewPort.height-1)*(vertex.position.y+1)/2;
 		double z = vertex.position.z;
 
 		return Fragment{this,
@@ -90,7 +90,7 @@ namespace asp{
 		Fragment* l02 = lerp<Fragment>(0, f0, dy02, f2, dy02+2);
 		Fragment* l12 = lerp<Fragment>(0, f1, dy12, f2, dy12+2);
 
-		for(int i = 0; i < dy02; i++){
+		for(int i = 0; i <= dy02; i++){
 			Fragment f1 = l02[i];
 			Fragment f2 = i < dy01 ? l01[i] : l12[i-dy01];
 			if(f1.position.x > f2.position.x)
@@ -106,7 +106,7 @@ namespace asp{
 				int fp2 = fp1+lines.front().second;
 
 				start = min((int)f1.position.x, fp1);
-				end = max((int)f2.position.x+1, fp2);
+				end = max((int)f2.position.x+1, fp2+2);
 			}
 
 			lines.push_front(make_pair(
@@ -132,7 +132,7 @@ namespace asp{
 	}
 
 	void Camera::setFOV(double fov){
-		focalLength = (viewPort.width-1)/(2*tan(fov*(M_PI/360)));
+		focalLength = viewPort.width/(2*tan(fov*(M_PI/360)));
 	}
 
 	void Camera::render(const Scene &scene){
@@ -170,10 +170,12 @@ namespace asp{
 
 			for(Vertex &v: vertices){
 				if(settings->projection == settings->PERSPECTIVE){
+					printf("%f %f %f -> ", v.position.x, v.position.y, v.position.z);
 					v.texel /= v.position.z;
-					v.position = Vector3D{(2*v.position.x*focalLength)/(width*v.position.z),
-										  (2*v.position.y*focalLength)/(height*v.position.z),
+					v.position = Vector3D{(2*v.position.x*focalLength)/((width)*v.position.z),
+										  (2*v.position.y*focalLength)/((height)*v.position.z),
 										   1/v.position.z, true};
+					printf("%f %f %f\n", v.position.x, v.position.y, v.position.z);
 				}
 				else if(settings->projection == settings->ORTHOGRAPHIC){
 					v.position = Vector3D{v.position.x,
@@ -195,22 +197,6 @@ namespace asp{
 			if(settings->backFaceCulling)
 				cullBackFaces(vertices, triangles);
 
-			//double xAngle = atan((viewPort.width-1)/(2.0*focalLength));
-			//double yAngle = atan((viewPort.height-1)/(2.0*focalLength));
-            //
-			//double xCos = cos(xAngle), yCos = cos(yAngle);
-			//double xSin = sin(xAngle), ySin = sin(yAngle);
-            //
-			//CullingPlane cullingPlanes[] = {CullingPlane{Vector3D{0, 0, 1, false}, -1},
-			//						 	    CullingPlane{Vector3D{xCos, 0, xSin, false}, 0},
-			//								CullingPlane{Vector3D{-xCos, 0, xSin, false}, 0},
-			//								CullingPlane{Vector3D{0, yCos, ySin, false}, 0},
-			//								CullingPlane{Vector3D{0, -yCos, ySin, false}, 0}};
-            //
-			//for(CullingPlane plane: cullingPlanes)
-			//	plane.cull(vertices, triangles);
-			//cout << "culled" << endl;
-
 			for(Triangle &triangle: triangles){
 
 				if(settings->wireframe){
@@ -228,7 +214,7 @@ namespace asp{
 
 					for(pair<Fragment*, int> pair: lines){
 						int x = pair.first->position.x, y = pair.first->position.y;
-						for(int i = 0; i < pair.second; i++, x++){
+						for(int i = 0; i <= pair.second; i++, x++){
 							Fragment f = pair.first[i];
 
 							if(x < 0 || x >= viewPort.width || y < 0 || y >= viewPort.height){

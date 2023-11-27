@@ -188,14 +188,14 @@ namespace asp{
 	}
 
 	Color Texture::shade(Fragment** fragment, int x, int y){
-		//int c = 0;
-		//if(fragment[y][x].material.alpha == 0.6)
-		//	c |= 0xFF;
-		//if(fragment[y+1][x].material.alpha == 0.6)
-		//	c |=  0xFF00;
-		//if(fragment[y][x+1].material.alpha == 0.6)
-		//	c |=  0xFF0000;
-		//return Color(c)*0.8;
+		int c = 0;
+		if(fragment[y][x].material.alpha == 0.6)
+			c |= 0xFF;
+		if(fragment[y+1][x].material.alpha == 0.6)
+			c |=  0xFF00;
+		if(fragment[y][x+1].material.alpha == 0.6)
+			c |=  0xFF0000;
+		return Color(c)*0.8;
 
 		Vector texel = fragment[y][x].texel/fragment[y][x].position.z;
 		double baseMap = 0;
@@ -222,9 +222,13 @@ namespace asp{
 			xPos = modf(texel.x, &temp);
 			if(xPos < 0)
 				xPos += 1;
+			else if(xPos == 0 && temp > 1)
+				xPos = 1;
 			yPos = modf(texel.y, &temp);
 			if(yPos < 0)
 				yPos += 1;
+			else if(yPos == 0 && temp > 1)
+				yPos = 1;
 		}
 		else{
 			xPos = min(1.0, max(0.0, texel.x));
